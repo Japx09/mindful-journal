@@ -673,13 +673,15 @@ function renderHomeScreen() {
   const avatarHtml = user ? getAvatarHtml(user, 48) : '';
 
   container.innerHTML = `
-    <header class="flex justify-between items-center mb-8 pt-4">
-      <h1 class="text-3xl font-bold tracking-tight">Hi, ${firstName}</h1>
-      <button onclick="switchScreen('screen-profile')" class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm flex items-center justify-center bg-brand-yellow flex-shrink-0">
-        ${avatarHtml}
-      </button>
-    </header>
-    <div class="flex overflow-x-auto hide-scrollbar gap-2 pb-4 snap-x relative -mx-6 px-6 mb-8">${calendarHtml}</div>
+    <div class="sticky -top-6 z-40 bg-brand-gray/95 backdrop-blur-md -mx-6 px-6 pt-10 pb-4 mb-6 shadow-[0_10px_30px_rgba(245,245,247,0.8)]">
+      <header class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold tracking-tight transform origin-left transition-all">Hi, ${firstName}</h1>
+        <button onclick="switchScreen('screen-profile')" class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm flex items-center justify-center bg-brand-yellow flex-shrink-0 transition-transform hover:scale-105">
+          ${avatarHtml}
+        </button>
+      </header>
+      <div class="flex overflow-x-auto hide-scrollbar gap-2 pb-2 snap-x relative -mx-6 px-6">${calendarHtml}</div>
+    </div>
     <div class="mb-8">
       <h2 class="text-xl font-bold mb-4">Latest Entry</h2>
       <div class="flex gap-4 overflow-x-auto hide-scrollbar -mx-6 px-6 snap-x pb-4">
