@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mindful Journal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              yellow: '#FFB833',
+              orange: '#FF9E2C',
+              dark: '#1A1A1A',
+              gray: '#F5F5F7',
+              text: '#333333',
+              lightText: '#8E8E93',
+            },
+            card: {
+              peach: '#FEE4DE',
+              lavender: '#E7E0FF',
+              sage: '#E3E9D7',
+              sun: '#FCDC6E', // approximating the sun card
+            }
+          },
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          },
+          boxShadow: {
+            'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+            'float': '0 8px 30px rgba(255, 184, 51, 0.3)',
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-brand-gray text-brand-text font-sans antialiased sm:flex sm:justify-center sm:items-center sm:h-screen sm:bg-gray-200">
+  <!-- Mobile Emulator Container for Desktop -->
+  <div id="app-wrapper" class="w-full h-full min-h-screen bg-brand-gray relative overflow-hidden sm:w-[390px] sm:h-[844px] sm:min-h-[844px] sm:rounded-[40px] sm:shadow-2xl sm:border-[8px] sm:border-white flex flex-col">
+
+    <!-- Auth Overlay — covers the entire app until user is logged in -->
+    <div id="auth-overlay" class="absolute inset-0 z-[500] bg-white flex flex-col overflow-y-auto hide-scrollbar">
+      <!-- Content injected by JS depending on auth step -->
+    </div>
+
+    <!-- Avatar Picker Modal -->
+    <div id="avatar-picker-modal" class="fixed inset-0 z-[600] bg-black/50 backdrop-blur-sm hidden flex-col justify-end">
+      <div class="bg-white w-full rounded-t-[32px] p-6 pb-10 shadow-2xl">
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
+        <h3 class="text-xl font-bold mb-1">Profile Photo</h3>
+        <p class="text-sm text-brand-lightText mb-5">Upload a photo from your device or pick an avatar colour.</p>
+        <input type="file" id="avatar-file-input" accept="image/*" class="hidden" onchange="handleAvatarFileUpload(event)">
+        <button onclick="document.getElementById('avatar-file-input').click()" class="w-full py-3 bg-brand-dark text-white font-bold rounded-xl text-sm mb-5 flex items-center justify-center gap-2 hover:bg-black transition-colors">
+          <i class="ri-upload-2-line text-lg"></i> Upload from Device
+        </button>
+        <div class="grid grid-cols-4 gap-3 mb-5" id="avatar-preset-grid">
+          <!-- Presets injected by JS -->
+        </div>
+        <button onclick="closeAvatarPicker()" class="w-full py-3 bg-brand-gray rounded-xl font-semibold text-brand-dark">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Screens Container -->
+
+    <div id="screens-container" class="flex-1 overflow-y-auto pb-24 hide-scrollbar relative bg-brand-gray">
+      <!-- Home Screen -->
+      <div id="screen-home" class="screen-view active w-full min-h-full p-6 transition-opacity duration-300">
+        <!-- Content injected by JS -->
+      </div>
+
+      <!-- Detail Screen -->
+      <div id="screen-detail" class="screen-view w-full min-h-full p-6 hidden transition-opacity duration-300 bg-white">
+        <!-- Content injected by JS -->
+      </div>
+
+      <!-- Explore Screen -->
+      <div id="screen-explore" class="screen-view w-full min-h-full p-0 hidden transition-opacity duration-300 bg-brand-gray">
+        <!-- Content injected by JS -->
+      </div>
+
+      <!-- Create Screen -->
+      <div id="screen-create" class="screen-view w-full min-h-full p-6 hidden transition-opacity duration-300 bg-white">
+        <!-- Content injected by JS -->
+      </div>
+
+      <!-- Stats Screen -->
+      <div id="screen-stats" class="screen-view w-full min-h-full p-6 hidden transition-opacity duration-300 bg-brand-gray">
+        <!-- Content injected by JS -->
+      </div>
+
+      <!-- Profile Screen -->
+      <div id="screen-profile" class="screen-view w-full min-h-full p-6 hidden transition-opacity duration-300 bg-brand-gray">
+        <!-- Content injected by JS -->
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav id="bottom-nav" class="absolute bottom-0 left-0 w-full bg-white px-6 pb-8 pt-4 rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.03)] flex justify-between items-center z-50">
+      <button class="nav-item active flex flex-col items-center gap-1 text-brand-dark" data-target="screen-home">
+        <i class="ri-home-5-fill text-2xl"></i>
+        <span class="text-[10px] font-medium">Home</span>
+      </button>
+      <button class="nav-item flex flex-col items-center gap-1 text-brand-lightText grayscale opacity-60" data-target="screen-explore">
+        <i class="ri-compass-3-line text-2xl"></i>
+        <span class="text-[10px] font-medium">Explore</span>
+      </button>
+      
+      <!-- FAB -->
+      <div class="relative -top-6">
+        <button onclick="switchScreen('screen-create')" class="w-14 h-14 bg-brand-yellow rounded-full flex items-center justify-center text-white text-3xl shadow-float hover:scale-105 transition-transform">
+          <i class="ri-add-line"></i>
+        </button>
+      </div>
+
+      <button class="nav-item flex flex-col items-center gap-1 text-brand-lightText grayscale opacity-60" data-target="screen-stats">
+        <i class="ri-bar-chart-2-fill text-2xl"></i>
+        <span class="text-[10px] font-medium">Journey</span>
+      </button>
+      <button class="nav-item flex flex-col items-center gap-1 text-brand-lightText grayscale opacity-60" data-target="screen-profile">
+        <i class="ri-user-3-fill text-2xl"></i>
+        <span class="text-[10px] font-medium">Profile</span>
+      </button>
+    </nav>
+
+    <!-- Floating AI Selection Popup (shown when text is highlighted) -->
+    <div id="ai-selection-popup" style="display:none; top:0; left:0;">
+      <button class="ai-purple" onclick="aiRewriteSelection('improve')">
+        <i class="ri-sparkling-fill"></i> Improve
+      </button>
+      <div class="sep"></div>
+      <button onclick="aiRewriteSelection('shorter')">Shorter</button>
+      <button onclick="aiRewriteSelection('emotional')">Emotional</button>
+      <div class="sep"></div>
+      <button onclick="aiRewriteCustom()"><i class="ri-chat-ai-line"></i> Ask AI</button>
+    </div>
+
+    <!-- Ask AI Bottom Sheet Modal -->
+    <div id="ask-ai-modal" class="fixed inset-0 z-[300] bg-black/50 backdrop-blur-sm hidden flex-col justify-end">
+      <div class="modal-card bg-white w-full rounded-t-[32px] p-6 pb-10 shadow-2xl">
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white flex-shrink-0">
+            <i class="ri-sparkling-fill"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-brand-dark text-lg leading-tight">Ask AI</h3>
+            <p id="ask-ai-context-label" class="text-xs text-brand-lightText">What would you like to do?</p>
+          </div>
+        </div>
+
+        <div class="flex gap-2 flex-wrap mb-4">
+          <button onclick="askAiQuickAction('Rewrite this to be more vivid and descriptive')" class="px-3 py-2 bg-purple-50 text-purple-700 text-xs font-semibold rounded-xl border border-purple-200 hover:bg-purple-100 transition">✨ More vivid</button>
+          <button onclick="askAiQuickAction('Make this more concise and clear')" class="px-3 py-2 bg-blue-50 text-blue-700 text-xs font-semibold rounded-xl border border-blue-200 hover:bg-blue-100 transition">📝 Shorter</button>
+          <button onclick="askAiQuickAction('Rewrite this to sound more positive and hopeful')" class="px-3 py-2 bg-green-50 text-green-700 text-xs font-semibold rounded-xl border border-green-200 hover:bg-green-100 transition">🌱 More hopeful</button>
+          <button onclick="askAiQuickAction('Rewrite this to sound more emotionally deep and reflective')" class="px-3 py-2 bg-red-50 text-red-700 text-xs font-semibold rounded-xl border border-red-200 hover:bg-red-100 transition">💖 Deeper</button>
+        </div>
+
+        <div class="flex gap-2">
+          <input type="text" id="ask-ai-input" placeholder='e.g. "Continue this thought"' class="flex-1 bg-brand-gray px-4 py-3 rounded-xl text-sm outline-none border border-transparent focus:border-purple-400 transition-colors">
+          <button onclick="askAiCustomSubmit()" class="w-12 h-12 bg-brand-dark text-white rounded-xl flex-shrink-0 flex items-center justify-center hover:bg-black transition-colors">
+            <i class="ri-send-plane-fill text-lg"></i>
+          </button>
+        </div>
+
+        <div id="ask-ai-loading" class="hidden mt-4 flex items-center gap-2 text-brand-lightText text-sm">
+          <i class="ri-loader-4-line animate-spin"></i> Generating with Gemini...
+        </div>
+
+        <button onclick="closeAskAiModal()" class="mt-4 w-full py-3 bg-brand-gray rounded-xl font-semibold text-brand-dark hover:bg-gray-200 transition-colors">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Image Picker Modal -->
+    <div id="img-picker-modal" class="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm hidden flex-col justify-end">
+      <div class="bg-white w-full rounded-t-[32px] p-6 pb-10 shadow-2xl">
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-xl font-bold mb-2">Change Cover Photo</h3>
+        <p class="text-sm text-brand-lightText mb-5">Paste an image URL or choose from our curated collection below.</p>
+
+        <div class="flex gap-2 mb-5">
+          <input type="text" id="img-url-input" placeholder="https://..." class="flex-1 bg-brand-gray px-4 py-3 rounded-xl text-sm outline-none border border-gray-200 focus:border-brand-yellow transition-colors">
+          <button onclick="applyCustomImageUrl()" class="px-4 py-3 bg-brand-dark text-white font-bold rounded-xl text-sm hover:bg-black transition-colors">
+            Apply
+          </button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <img onclick="applyPresetImage(this.src)" src="https://images.unsplash.com/photo-1470071131384-001b85755536?w=400&q=80" class="w-full h-24 object-cover rounded-2xl cursor-pointer hover:ring-2 hover:ring-brand-yellow transition-all" alt="Nature">
+          <img onclick="applyPresetImage(this.src)" src="https://images.unsplash.com/photo-1542401886-65d6c61db217?w=400&q=80" class="w-full h-24 object-cover rounded-2xl cursor-pointer hover:ring-2 hover:ring-brand-yellow transition-all" alt="Mountains">
+          <img onclick="applyPresetImage(this.src)" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80" class="w-full h-24 object-cover rounded-2xl cursor-pointer hover:ring-2 hover:ring-brand-yellow transition-all" alt="Beach">
+          <img onclick="applyPresetImage(this.src)" src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80" class="w-full h-24 object-cover rounded-2xl cursor-pointer hover:ring-2 hover:ring-brand-yellow transition-all" alt="Forest">
+          <img onclick="applyPresetImage(this.src)" src="https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=400&q=80" class="w-full h-24 object-cover rounded-2xl cursor-pointer hover:ring-2 hover:ring-brand-yellow transition-all" alt="Lake">
+          <img onclick="applyPresetImage(this.src)" src="https://images.unsplash.com/photo-1517331535976-1b4274c43ba4?w=400&q=80" class="w-full h-24 object-cover rounded-2xl cursor-pointer hover:ring-2 hover:ring-brand-yellow transition-all" alt="Sunrise">
+        </div>
+
+        <button onclick="closeImgPicker()" class="mt-5 w-full py-3 bg-brand-gray rounded-xl font-semibold text-brand-dark hover:bg-gray-200 transition-colors">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Gemini AI Modal -->
+    <div id="ai-modal" class="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm hidden flex-col justify-end">
+      <div class="bg-white w-full rounded-t-[32px] p-6 pb-12 transform translate-y-full transition-transform duration-300 shadow-2xl" id="ai-modal-content">
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-400 to-purple-500 flex items-center justify-center text-white">
+            <i class="ri-sparkling-fill"></i>
+          </div>
+          <h3 class="text-xl font-semibold">Gemini AI Insight</h3>
+        </div>
+        <div id="ai-response" class="text-brand-text/80 leading-relaxed min-h-[100px] mb-6">
+          <div class="animate-pulse flex space-x-2 items-center text-brand-lightText">
+            <i class="ri-loader-4-line animate-spin text-xl"></i>
+            <span>Generating mindful insights...</span>
+          </div>
+        </div>
+        <button id="close-ai-modal" class="w-full py-4 bg-brand-gray rounded-2xl font-semibold text-brand-dark hover:bg-gray-200 transition-colors">
+          Close Overview
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
