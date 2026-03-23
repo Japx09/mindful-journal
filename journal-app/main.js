@@ -1165,10 +1165,10 @@ function renderProfileScreen() {
     <!-- API Key -->
     <div class="bg-white rounded-[32px] p-6 shadow-soft mb-5">
       <h3 class="font-bold text-lg mb-1 flex items-center gap-2">
-        <i class="ri-sparkling-fill text-brand-yellow"></i> Gemini AI Key
+        <i class="ri-sparkling-fill text-brand-yellow"></i> Gemini AI Key <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md font-normalml-2">(Local Testing)</span>
       </h3>
-      <p class="text-xs text-brand-lightText mb-3">Powers AI prompts and text rewrites.</p>
-      <input type="password" id="settings-apiKey" value="${store.apiKey || ''}" placeholder="AIzaSy..." class="w-full bg-brand-gray px-4 py-3 rounded-xl text-sm outline-none mb-3 border border-transparent focus:border-brand-yellow">
+      <p class="text-xs text-brand-lightText mb-3">If the app is deployed on Vercel, the shared team key is handled securely on the server. You only need to paste a key here if you are opening the app locally on your computer.</p>
+      <input type="password" id="settings-apiKey" value="${store.apiKey || ''}" placeholder="Optional: AIzaSy..." class="w-full bg-brand-gray px-4 py-3 rounded-xl text-sm outline-none mb-3 border border-transparent focus:border-brand-yellow">
       <button onclick="saveProfile()" class="w-full py-3 bg-brand-dark text-white font-semibold rounded-xl hover:bg-black transition-colors shadow-md">Save API Key</button>
     </div>
 
@@ -1436,6 +1436,30 @@ document.getElementById('close-ai-modal').addEventListener('click', () => {
 });
 
 async function callActualGemini(userPrompt) {
+  // 1. If we are on a real server (Vercel), try the secure backend route first!
+  if (window.location.protocol.startsWith('http')) {
+    try {
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: userPrompt })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        return data.text;
+      }
+      // If deployed but api is misconfigured, log and fallback
+      console.log('Backend /api/gemini unavailable, falling back to local key...');
+    } catch(err) {
+      console.log('Backend /api/gemini unavailable, falling back to local key...');
+    }
+  }
+
+  // 2. Fall back to local client-side key for file:// testing (or if Vercel backend fails)
+  if (!store.apiKey) {
+    throw new Error('No API Key found. This app uses a secure backend on Vercel. To test AI locally on your computer, please save a key in the Profile Settings.');
+  }
+  
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + store.apiKey;
   try {
     const response = await fetch(url, {
