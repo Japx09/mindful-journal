@@ -69,7 +69,15 @@ window.renderLoginScreen = function() {
       <p class="text-brand-lightText mb-8 text-sm">Sign in to continue your journey.</p>
       <div class="flex flex-col gap-4">
         <div><label class="text-xs font-semibold text-brand-text/60 uppercase tracking-wider mb-2 block">Email</label><input id="login-email" type="email" placeholder="you@email.com" class="auth-input"></div>
-        <div><label class="text-xs font-semibold text-brand-text/60 uppercase tracking-wider mb-2 block">Password</label><input id="login-password" type="password" placeholder="••••••••" class="auth-input"></div>
+        <div>
+          <label class="text-xs font-semibold text-brand-text/60 uppercase tracking-wider mb-2 block">Password</label>
+          <div class="relative">
+            <input id="login-password" type="password" placeholder="••••••••" class="auth-input w-full pr-12">
+            <button tabindex="-1" type="button" onclick="togglePasswordVisibility('login-password', 'login-eye-icon')" class="absolute right-4 top-1/2 -translate-y-1/2 text-brand-lightText hover:text-brand-dark transition-colors">
+              <i id="login-eye-icon" class="ri-eye-off-line text-lg"></i>
+            </button>
+          </div>
+        </div>
         <p id="login-error" class="text-red-500 text-sm hidden"></p>
         <button class="auth-btn yellow mt-2" onclick="handleLogin()">Sign In</button>
       </div>
@@ -104,7 +112,15 @@ window.renderSignUpScreen = function() {
       <div class="flex flex-col gap-4 mb-8">
         <div><label class="text-xs font-semibold text-brand-text/60 uppercase tracking-wider mb-2 block">Full Name</label><input id="signup-name" type="text" placeholder="Your name" class="auth-input"></div>
         <div><label class="text-xs font-semibold text-brand-text/60 uppercase tracking-wider mb-2 block">Email</label><input id="signup-email" type="email" placeholder="you@email.com" class="auth-input"></div>
-        <div><label class="text-xs font-semibold text-brand-text/60 uppercase tracking-wider mb-2 block">Password</label><input id="signup-password" type="password" placeholder="Min. 6 characters" class="auth-input"></div>
+        <div>
+          <label class="text-xs font-semibold text-brand-text/60 uppercase tracking-wider mb-2 block">Password</label>
+          <div class="relative">
+            <input id="signup-password" type="password" placeholder="Min. 6 characters" class="auth-input w-full pr-12">
+            <button tabindex="-1" type="button" onclick="togglePasswordVisibility('signup-password', 'signup-eye-icon')" class="absolute right-4 top-1/2 -translate-y-1/2 text-brand-lightText hover:text-brand-dark transition-colors">
+              <i id="signup-eye-icon" class="ri-eye-off-line text-lg"></i>
+            </button>
+          </div>
+        </div>
         <p id="signup-error" class="text-red-500 text-sm hidden"></p>
         <button class="auth-btn yellow" onclick="handleSignUp()">Continue</button>
       </div>
@@ -113,6 +129,19 @@ window.renderSignUpScreen = function() {
   `;
 }
 function renderSignUpScreen() { window.renderSignUpScreen(); }
+
+window.togglePasswordVisibility = function(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  if (!input || !icon) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.replace('ri-eye-off-line', 'ri-eye-line');
+  } else {
+    input.type = 'password';
+    icon.classList.replace('ri-eye-line', 'ri-eye-off-line');
+  }
+}
 
 window.handleSignUp = function() {
   const name  = document.getElementById('signup-name').value.trim();
@@ -193,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===================== GLOBAL JOURNAL STORE (LocalStorage) =====================
 
-let store = { apiKey: 'AIzaSyBJEEA9BfqLCZzhr2a3RAOqUszGunERokk', entries: [] };
+let store = { apiKey: '', entries: [] };
 let activeEntryId = null;
 let homeSelectedDate = new Date().toDateString();
 let isEditing = false;
@@ -743,10 +772,22 @@ window.closeImgPicker = function () {
 }
 
 window.applyPresetImage = function (src) {
-  const entry = store.entries.find(e => e.id === activeEntryId);
-  if (entry) { entry.coverImage = src; saveStore(); }
-  const coverEl = document.getElementById('detail-cover');
-  if (coverEl) coverEl.src = src;
+  if (activeEntryId) {
+    const entry = store.entries.find(e => e.id === activeEntryId);
+    if (entry) { entry.coverImage = src; saveStore(); }
+    const coverEl = document.getElementById('detail-cover');
+    if (coverEl) coverEl.src = src;
+  } else {
+    _createCoverImage = src;
+    const createCoverEl = document.getElementById('create-cover');
+    const containerEl = document.getElementById('create-cover-container');
+    const btnEl = document.getElementById('create-cover-btn');
+    if (createCoverEl && containerEl) {
+      createCoverEl.src = src;
+      containerEl.classList.remove('hidden');
+      if (btnEl) btnEl.classList.add('hidden');
+    }
+  }
   closeImgPicker();
 }
 
@@ -755,6 +796,21 @@ window.applyCustomImageUrl = function () {
   const url = input?.value.trim();
   if (!url) { alert('Please enter a valid URL.'); return; }
   applyPresetImage(url);
+}
+
+window.handleCoverFileUpload = function(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { alert('Please select an image file.'); return; }
+  // Compressing or limiting large files is vital for localStorage limits (~5MB total)
+  if (file.size > 2 * 1024 * 1024) { alert('Image too large. Please pick one under 2 MB to avoid running out of storage space.'); return; }
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    applyPresetImage(e.target.result); // Reuse the same logic to set image
+  };
+  reader.readAsDataURL(file);
+  event.target.value = ''; // Reset input
 }
 
 function renderDetailScreen() {
@@ -866,7 +922,10 @@ window.deleteEntry = function (id) {
 
 // =================== CREATE SCREEN ===================
 
+let _createCoverImage = null;
+
 function renderCreateScreen() {
+  _createCoverImage = null; // reset on load
   const container = document.getElementById('screen-create');
   container.innerHTML = `
     <div class="flex justify-between items-center mb-5 pt-2">
@@ -881,7 +940,7 @@ function renderCreateScreen() {
 
     <input type="text" id="create-title" placeholder="Title your reflection..." class="w-full text-2xl font-bold bg-transparent outline-none mb-4 text-brand-dark placeholder:text-gray-300 border-b border-gray-100 pb-3">
     
-    <div class="flex gap-2 mb-5 overflow-x-auto hide-scrollbar pb-1">
+    <div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar pb-1">
       <select id="create-emotion" class="bg-brand-gray px-3 py-2 rounded-xl text-sm font-bold text-brand-orange outline-none shadow-sm cursor-pointer border border-transparent focus:border-brand-yellow transition-colors">
         <option value="Happy">😊 Happy</option>
         <option value="Calm">😌 Calm</option>
@@ -889,6 +948,16 @@ function renderCreateScreen() {
         <option value="Sad">😔 Sad</option>
       </select>
       <input type="text" id="create-tags" placeholder="Tags (e.g. Work, Family)" class="flex-1 bg-brand-gray px-3 py-2 rounded-xl text-sm outline-none border border-transparent focus:border-brand-yellow transition-colors">
+    </div>
+
+    <button id="create-cover-btn" onclick="openImgPicker()" class="w-full py-3 bg-brand-gray text-brand-dark rounded-xl mb-5 font-semibold flex items-center justify-center gap-2 hover:bg-gray-200 transition border border-dashed border-gray-300">
+      <i class="ri-image-add-line text-lg"></i> Add Cover Image
+    </button>
+    <div id="create-cover-container" class="editable-cover w-full h-48 rounded-3xl overflow-hidden mb-5 shadow-md hidden" onclick="openImgPicker()">
+      <img id="create-cover" src="" class="w-full h-full object-cover">
+      <div class="editable-cover-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity">
+        <i class="ri-camera-switch-line text-white text-3xl"></i>
+      </div>
     </div>
 
     ${buildToolbar('create-rte')}
@@ -921,7 +990,7 @@ window.saveNewEntry = function () {
     emotion: emotion || 'Happy',
     tags,
     date: new Date().toISOString(),
-    coverImage: DEFAULT_COVER
+    coverImage: _createCoverImage || DEFAULT_COVER
   });
   saveStore();
   homeSelectedDate = new Date().toDateString();
@@ -1103,6 +1172,19 @@ function renderProfileScreen() {
       <button onclick="saveProfile()" class="w-full py-3 bg-brand-dark text-white font-semibold rounded-xl hover:bg-black transition-colors shadow-md">Save API Key</button>
     </div>
 
+    <!-- Security Settings -->
+    <div class="bg-white rounded-[32px] p-6 shadow-soft mb-5">
+      <h3 class="font-bold text-lg mb-4">Security</h3>
+      <div class="flex flex-col gap-3">
+        <button onclick="requestChangeEmail()" class="w-full py-3 bg-brand-gray text-brand-dark font-semibold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+          <i class="ri-mail-line"></i> Change Email
+        </button>
+        <button onclick="requestChangePassword()" class="w-full py-3 bg-brand-gray text-brand-dark font-semibold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+          <i class="ri-lock-password-line"></i> Change Password
+        </button>
+      </div>
+    </div>
+
     <!-- Danger zone -->
     <div class="bg-white rounded-[32px] p-6 shadow-soft mb-5">
       <h3 class="font-bold text-lg mb-4">Account</h3>
@@ -1115,7 +1197,7 @@ function renderProfileScreen() {
         </button>
       </div>
     </div>
-    <p class="text-center text-xs text-brand-lightText pb-4">Your data is securely stored in the cloud via Firebase.</p>
+    <p class="text-center text-xs text-brand-lightText pb-4">Your data is securely stored offline in your device's local storage.</p>
   `;
 }
 
@@ -1148,11 +1230,62 @@ window.openChangeRole = function() {
   };
 }
 
+window.saveProfile = function () {
+  const key = document.getElementById('settings-apiKey')?.value.trim();
+  if (key) {
+    store.apiKey = key;
+    localStorage.setItem('gemini_api_key', key);
+    saveStore(); // also updates main localstorage
+  }
+  const btn = document.querySelector('#screen-profile button[onclick="saveProfile()"]');
+  if (btn) { btn.textContent = '✓ Saved!'; setTimeout(() => { btn.textContent = 'Save API Key'; }, 1500); }
+}
+
+window.requestChangeEmail = function() {
+  const newEmail = prompt("Enter your new email address:");
+  if (!newEmail) return;
+  alert(`An OTP (One-Time Password) has been sent to ${newEmail} (simulated for local storage).`);
+  const otp = prompt("Please enter the 6-digit OTP sent to your email:");
+  if (otp) {
+    const user = getCurrentUser();
+    const oldEmail = user.email;
+    const newEmailLower = newEmail.trim().toLowerCase();
+    if (authStore.users[newEmailLower]) { alert('Email is already in use!'); return; }
+    
+    user.email = newEmailLower;
+    // Re-key the users object
+    authStore.users[newEmailLower] = user;
+    delete authStore.users[oldEmail];
+    authStore.currentUserId = newEmailLower;
+    saveAuthStore();
+    
+    alert("Email updated successfully!");
+    renderProfileScreen();
+  }
+}
+
+window.requestChangePassword = function() {
+  const user = getCurrentUser();
+  const oldPass = prompt("Enter your CURRENT password:");
+  if (!oldPass || oldPass !== user.password) { alert("Incorrect current password."); return; }
+  
+  const newPass = prompt("Enter your NEW password (min 6 characters):");
+  if (!newPass || newPass.length < 6) { alert("Password must be at least 6 characters."); return; }
+  
+  alert(`An OTP has been sent to ${user.email} for verification (simulated).`);
+  const otp = prompt("Please enter the 6-digit OTP:");
+  if (otp) {
+    user.password = newPass;
+    saveAuthStore();
+    alert("Password updated successfully!");
+  }
+}
+
 window.handleLogout = function() {
   if (!confirm('Sign out of Mindful Journal?')) return;
   authStore.currentUserId = null;
   saveAuthStore();
-  store = { apiKey: 'AIzaSyBJEEA9BfqLCZzhr2a3RAOqUszGunERokk', entries: [] };
+  store = { apiKey: '', entries: [] };
   switchScreen('screen-home');
   showAuthOverlay();
   renderWelcomeScreen();
@@ -1303,7 +1436,7 @@ document.getElementById('close-ai-modal').addEventListener('click', () => {
 });
 
 async function callActualGemini(userPrompt) {
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + store.apiKey;
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + store.apiKey;
   try {
     const response = await fetch(url, {
       method: 'POST',
