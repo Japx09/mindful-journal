@@ -1456,7 +1456,7 @@ async function callActualGemini(userPrompt) {
     throw new Error('No API Key found. This app uses a secure backend on Vercel. To test AI locally on your computer, please save a key in the Profile Settings.');
   }
   
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + store.apiKey;
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + store.apiKey;
   try {
     const response = await fetch(url, {
       method: 'POST',
