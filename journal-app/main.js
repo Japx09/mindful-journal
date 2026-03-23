@@ -484,7 +484,6 @@ window.aiRewriteSelection = async function(mode) {
   const prompt = prompts[mode] || prompts.improve;
 
   // Show inline loading indicator
-  if (!store.apiKey) { alert('Please set your Gemini API Key in Profile first.'); return; }
 
   try {
     const result = await callActualGemini(prompt);
@@ -574,7 +573,6 @@ window.askAiCustomSubmit = async function() {
 }
 
 async function runAskAi(prompt) {
-  if (!store.apiKey) { alert('Please set your Gemini API Key in Profile first.'); return; }
   const loading = document.getElementById('ask-ai-loading');
   loading.classList.remove('hidden');
 
@@ -1378,7 +1376,6 @@ window.clearAllData = function () {
 window.openAiModal = function (actionType = 'generate_prompt') {
   const modal = document.getElementById('ai-modal');
   const responseDiv = document.getElementById('ai-response');
-  if (!store.apiKey) { alert("Please set your Gemini API Key in the Profile tab first."); return; }
   modal.classList.remove('hidden'); modal.classList.add('flex');
   setTimeout(() => { modal.classList.add('modal-open'); }, 10);
 
@@ -1410,7 +1407,6 @@ window.openAiModal = function (actionType = 'generate_prompt') {
 window.enhanceEntryWithGemini = function (entryId) {
   const entry = store.entries.find(e => e.id === entryId);
   if (!entry) return;
-  if (!store.apiKey) { alert("Please set your Gemini API Key in the Profile tab first."); return; }
   const modal = document.getElementById('ai-modal');
   const responseDiv = document.getElementById('ai-response');
   modal.classList.remove('hidden'); modal.classList.add('flex');
