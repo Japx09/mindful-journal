@@ -507,7 +507,7 @@ function replaceSelectionWithAiText(newText) {
   // Insert the new text as a span with highlight animation
   const span = document.createElement('span');
   span.className = 'ai-replaced';
-  span.textContent = newText;
+  span.innerHTML = parseMarkdownToHtml(newText);
   range.insertNode(span);
 
   // Move caret to end of inserted node
@@ -606,7 +606,7 @@ function insertTextAtCursor(text) {
     restoreSelectionRange();
     const span = document.createElement('span');
     span.className = 'ai-replaced';
-    span.textContent = text;
+    span.innerHTML = parseMarkdownToHtml(text);
     _savedRange.insertNode(span);
     const newRange = document.createRange();
     newRange.setStartAfter(span);
@@ -616,7 +616,7 @@ function insertTextAtCursor(text) {
     sel.addRange(newRange);
     _savedRange = null;
   } else {
-    document.execCommand('insertText', false, text);
+    document.execCommand('insertHTML', false, parseMarkdownToHtml(text));
   }
 }
 
@@ -1350,6 +1350,13 @@ window.clearAllData = function () {
 
 // =================== GEMINI AI ===================
 
+function parseMarkdownToHtml(text) {
+  if (!text) return '';
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
 
 window.openAiModal = function (actionType = 'generate_prompt') {
   const modal = document.getElementById('ai-modal');
@@ -1363,14 +1370,15 @@ window.openAiModal = function (actionType = 'generate_prompt') {
 
   callActualGemini(prompt)
     .then(response => {
-      responseDiv.innerHTML = `<div class="p-4 bg-brand-gray rounded-xl mb-4 border border-gray-200"><p class="italic text-brand-text font-medium text-lg leading-snug">"${response}"</p></div>`;
+      const htmlResponse = parseMarkdownToHtml(response);
+      responseDiv.innerHTML = `<div class="p-4 bg-brand-gray rounded-xl mb-4 border border-gray-200"><p class="italic text-brand-text font-medium text-lg leading-snug">"${htmlResponse}"</p></div>`;
       if (actionType === 'generate_prompt' && document.getElementById('create-rte')) {
         const btn = document.createElement('button');
         btn.className = "w-full py-3 bg-brand-dark text-white rounded-xl font-bold mt-2 hover:bg-black transition border border-gray-800 shadow-md";
         btn.innerText = "Use this prompt";
         btn.onclick = () => {
           const rte = document.getElementById('create-rte');
-          if (rte) rte.innerHTML = `<p>${response}</p><p><br></p>`;
+          if (rte) rte.innerHTML = `<p>${htmlResponse}</p><p><br></p>`;
           document.getElementById('close-ai-modal').click();
           rte?.focus();
         }
@@ -1396,7 +1404,8 @@ window.enhanceEntryWithGemini = function (entryId) {
 
   callActualGemini(promptData)
     .then(response => {
-      responseDiv.innerHTML = `<div class="p-4 bg-purple-50 rounded-xl mb-4 border border-purple-200"><p class="italic text-brand-text leading-relaxed font-medium">"${response}"</p></div>`;
+      const htmlResponse = parseMarkdownToHtml(response);
+      responseDiv.innerHTML = `<div class="p-4 bg-purple-50 rounded-xl mb-4 border border-purple-200"><p class="italic text-brand-text leading-relaxed font-medium">"${htmlResponse}"</p></div>`;
     })
     .catch(err => {
       responseDiv.innerHTML = `<div class="p-4 bg-red-50 text-red-600 rounded-xl border border-red-200 text-sm"><strong>API Error:</strong> ${err.message}</div>`;
