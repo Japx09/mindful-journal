@@ -646,9 +646,9 @@ function renderHomeScreen() {
   }
 
   const calendarHtml = calendarDays.map(d => `
-    <div onclick="setHomeDate('${d.fullDateStr}')" class="flex flex-col items-center gap-2 min-w-[3.5rem] cursor-pointer hover:scale-105 transition-transform">
-      <span class="text-xs ${d.active ? 'text-brand-orange font-bold' : 'text-brand-lightText font-medium'}">${d.day}</span>
-      <div class="w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold transition-colors duration-300
+    <div onclick="setHomeDate('${d.fullDateStr}')" class="flex flex-col items-center gap-1 sm:gap-2 min-w-[3rem] sm:min-w-[3.5rem] cursor-pointer hover:scale-105 transition-transform">
+      <span class="text-[10px] sm:text-xs ${d.active ? 'text-brand-orange font-bold' : 'text-brand-lightText font-medium'}">${d.day}</span>
+      <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-base sm:text-lg font-semibold transition-colors duration-300
         ${d.active ? 'bg-brand-yellow text-white shadow-md' : 'bg-white text-brand-text shadow-sm'}">
         ${d.date}
       </div>
@@ -663,7 +663,7 @@ function renderHomeScreen() {
   let mainCardHtml = '';
   if (mainCardEntry) {
     mainCardHtml = `
-      <div class="min-w-[280px] bg-[#FACC50] rounded-[32px] p-6 snap-center shadow-soft relative overflow-hidden cursor-pointer" onclick="viewEntry('${mainCardEntry.id}')">
+      <div class="min-w-[280px] bg-[#FACC50] rounded-[32px] p-4 sm:p-6 snap-center shadow-soft relative overflow-hidden cursor-pointer" onclick="viewEntry('${mainCardEntry.id}')">
         <div class="absolute top-20 right-10 w-8 h-2 bg-white/40 rounded-full blur-[1px]"></div>
         <div class="absolute top-24 left-10 w-12 h-2 bg-white/40 rounded-full blur-[1px]"></div>
         <div class="relative z-10 text-center mb-8">
@@ -680,7 +680,7 @@ function renderHomeScreen() {
         </div>
       </div>`;
   } else {
-    mainCardHtml = `<div class="min-w-[280px] bg-[#FACC50] rounded-[32px] p-6 snap-center shadow-soft flex items-center justify-center text-center cursor-pointer" onclick="switchScreen('screen-create')"><h3 class="font-bold text-brand-dark text-lg">Let's start your day<br/><span class="text-sm font-normal">Tap '+' to begin your first journal</span></h3></div>`;
+    mainCardHtml = `<div class="min-w-[280px] bg-[#FACC50] rounded-[32px] p-4 sm:p-6 snap-center shadow-soft flex items-center justify-center text-center cursor-pointer" onclick="switchScreen('screen-create')"><h3 class="font-bold text-brand-dark text-lg">Let's start your day<br/><span class="text-sm font-normal">Tap '+' to begin your first journal</span></h3></div>`;
   }
 
   const bgColors = ['bg-card-peach', 'bg-card-lavender', 'bg-card-sage'];
@@ -704,27 +704,27 @@ function renderHomeScreen() {
   const avatarHtml = user ? getAvatarHtml(user, 48) : '';
 
   container.innerHTML = `
-    <div class="sticky -top-6 z-40 bg-brand-gray/95 backdrop-blur-md -mx-6 px-6 pt-10 pb-4 mb-6 shadow-[0_10px_30px_rgba(245,245,247,0.8)]">
+    <div class="sticky -top-4 sm:-top-6 z-40 bg-brand-gray/95 backdrop-blur-md -mx-4 sm:-mx-6 px-4 sm:px-6 pt-8 sm:pt-10 pb-4 mb-6 shadow-[0_10px_30px_rgba(245,245,247,0.8)]">
       <header class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold tracking-tight transform origin-left transition-all">Hi, ${firstName}</h1>
-        <button onclick="switchScreen('screen-profile')" class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm flex items-center justify-center bg-brand-yellow flex-shrink-0 transition-transform hover:scale-105">
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight transform origin-left transition-all">Hi, ${firstName}</h1>
+        <button onclick="switchScreen('screen-profile')" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-white shadow-sm flex items-center justify-center bg-brand-yellow flex-shrink-0 transition-transform hover:scale-105">
           ${avatarHtml}
         </button>
       </header>
-      <div class="flex overflow-x-auto hide-scrollbar gap-2 pb-2 snap-x relative -mx-6 px-6">${calendarHtml}</div>
+      <div class="flex overflow-x-auto hide-scrollbar gap-2 pb-2 snap-x relative -mx-4 sm:-mx-6 px-4 sm:px-6">${calendarHtml}</div>
     </div>
     <div class="mb-8">
       <h2 class="text-xl font-bold mb-4">Latest Entry</h2>
-      <div class="flex gap-4 overflow-x-auto hide-scrollbar -mx-6 px-6 snap-x pb-4">
+      <div class="flex gap-4 overflow-x-auto hide-scrollbar -mx-4 sm:-mx-6 px-4 sm:px-6 snap-x pb-4">
         ${mainCardHtml}
-        <div class="min-w-[100px] bg-[#D7D0C4] rounded-[32px] p-6 snap-center flex justify-center items-center shadow-soft">
+        <div class="min-w-[100px] bg-[#D7D0C4] rounded-[32px] p-4 sm:p-6 snap-center flex justify-center items-center shadow-soft">
           <span class="rotate-[-90deg] font-bold text-brand-dark/60 tracking-widest uppercase text-sm">Evening</span>
         </div>
       </div>
     </div>
     <div class="mb-4">
       <h2 class="text-xl font-bold mb-4">Journals on Selected Date</h2>
-      <div class="flex gap-4 overflow-x-auto hide-scrollbar -mx-6 px-6 snap-x">${quickJournalsHtml}</div>
+      <div class="flex gap-4 overflow-x-auto hide-scrollbar -mx-4 sm:-mx-6 px-4 sm:px-6 snap-x">${quickJournalsHtml}</div>
     </div>`;
 }
 
@@ -1107,7 +1107,7 @@ function renderStatsScreen() {
       <h1 class="text-6xl font-bold text-brand-dark tracking-tighter mb-2">${total}</h1>
       <p class="text-brand-text/70 text-sm">Total entries capturing your moments.</p>
     </div>
-    <div class="bg-white rounded-[32px] p-6 shadow-soft mb-6">
+    <div class="bg-white rounded-[32px] p-4 sm:p-6 shadow-soft mb-6">
       <h3 class="font-bold text-lg mb-1">Emotion Breakdown</h3>
       <p class="text-xs text-brand-lightText mb-6">Tap a bar to filter journals</p>
       <div class="flex justify-between items-end h-[180px] gap-3">${barsHtml}</div>
@@ -1143,7 +1143,7 @@ function renderProfileScreen() {
     </div>
 
     <!-- Avatar + Identity Card -->
-    <div class="bg-white rounded-[32px] p-6 shadow-soft mb-5 flex flex-col items-center text-center">
+    <div class="bg-white rounded-[32px] p-4 sm:p-6 shadow-soft mb-5 flex flex-col items-center text-center">
       <button onclick="openAvatarPicker()" class="avatar-ring mb-4 relative">
         <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;">
           ${getAvatarHtml(user, 90)}
@@ -1167,7 +1167,7 @@ function renderProfileScreen() {
     </div>
 
     <!-- Security Settings -->
-    <div class="bg-white rounded-[32px] p-6 shadow-soft mb-5">
+    <div class="bg-white rounded-[32px] p-4 sm:p-6 shadow-soft mb-5">
       <h3 class="font-bold text-lg mb-4">Security</h3>
       <div class="flex flex-col gap-3">
         <button onclick="requestChangeEmail()" class="w-full py-3 bg-brand-gray text-brand-dark font-semibold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
@@ -1180,7 +1180,7 @@ function renderProfileScreen() {
     </div>
 
     <!-- Danger zone -->
-    <div class="bg-white rounded-[32px] p-6 shadow-soft mb-5">
+    <div class="bg-white rounded-[32px] p-4 sm:p-6 shadow-soft mb-5">
       <h3 class="font-bold text-lg mb-4">Account</h3>
       <div class="flex flex-col gap-3">
         <button onclick="handleLogout()" class="w-full py-3 bg-brand-gray text-brand-dark font-semibold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">

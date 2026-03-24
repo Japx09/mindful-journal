@@ -51,7 +51,7 @@
 
     <!-- Avatar Picker Modal -->
     <div id="avatar-picker-modal" class="fixed inset-0 z-[600] bg-black/50 backdrop-blur-sm hidden flex-col justify-end">
-      <div class="bg-white w-full rounded-t-[32px] p-6 pb-10 shadow-2xl">
+      <div class="bg-white w-full rounded-t-[32px] p-4 sm:p-6 pb-10 shadow-2xl">
         <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
         <h3 class="text-xl font-bold mb-1">Profile Photo</h3>
         <p class="text-sm text-brand-lightText mb-5">Upload a photo from your device or pick an avatar colour.</p>
@@ -70,11 +70,11 @@
 
     <div id="screens-container" class="flex-1 overflow-y-auto pb-24 hide-scrollbar relative bg-brand-gray">
       <!-- Home Screen -->
-      <div id="screen-home" class="screen-view active w-full min-h-full p-6 transition-opacity duration-300">
+      <div id="screen-home" class="screen-view active w-full min-h-full p-4 sm:p-6 transition-opacity duration-300">
         <!-- Content injected by JS -->
       </div>
 
-      <div id="screen-detail" class="screen-view w-full min-h-full p-6 transition-opacity duration-300 bg-white">
+      <div id="screen-detail" class="screen-view w-full min-h-full p-4 sm:p-6 transition-opacity duration-300 bg-white">
         <!-- Content injected by JS -->
       </div>
 
@@ -82,21 +82,21 @@
         <!-- Content injected by JS -->
       </div>
 
-      <div id="screen-create" class="screen-view w-full min-h-full p-6 transition-opacity duration-300 bg-white">
+      <div id="screen-create" class="screen-view w-full min-h-full p-4 sm:p-6 transition-opacity duration-300 bg-white">
         <!-- Content injected by JS -->
       </div>
 
-      <div id="screen-stats" class="screen-view w-full min-h-full p-6 transition-opacity duration-300 bg-brand-gray">
+      <div id="screen-stats" class="screen-view w-full min-h-full p-4 sm:p-6 transition-opacity duration-300 bg-brand-gray">
         <!-- Content injected by JS -->
       </div>
 
-      <div id="screen-profile" class="screen-view w-full min-h-full p-6 transition-opacity duration-300 bg-brand-gray">
+      <div id="screen-profile" class="screen-view w-full min-h-full p-4 sm:p-6 transition-opacity duration-300 bg-brand-gray">
         <!-- Content injected by JS -->
       </div>
     </div>
 
     <!-- Bottom Navigation -->
-    <nav id="bottom-nav" class="absolute bottom-0 left-0 w-full bg-white px-6 pb-8 pt-4 rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.03)] flex justify-between items-center z-50">
+    <nav id="bottom-nav" class="absolute bottom-0 left-0 w-full bg-white px-4 sm:px-6 pb-6 sm:pb-8 pt-3 sm:pt-4 rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.03)] flex justify-around sm:justify-between items-center z-50">
       <button class="nav-item active flex flex-col items-center gap-1 text-brand-dark" data-target="screen-home">
         <i class="ri-home-5-fill text-2xl"></i>
         <span class="text-[10px] font-medium">Home</span>
@@ -107,7 +107,7 @@
       </button>
       
       <!-- FAB -->
-      <div class="relative -top-6">
+      <div class="relative -top-5 sm:-top-6">
         <button onclick="switchScreen('screen-create')" class="w-14 h-14 bg-brand-yellow rounded-full flex items-center justify-center text-white text-3xl shadow-float hover:scale-105 transition-transform">
           <i class="ri-add-line"></i>
         </button>
@@ -137,7 +137,7 @@
 
     <!-- Ask AI Bottom Sheet Modal -->
     <div id="ask-ai-modal" class="fixed inset-0 z-[300] bg-black/50 backdrop-blur-sm hidden flex-col justify-end">
-      <div class="modal-card bg-white w-full rounded-t-[32px] p-6 pb-10 shadow-2xl">
+      <div class="modal-card bg-white w-full rounded-t-[32px] p-4 sm:p-6 pb-10 shadow-2xl">
         <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
         <div class="flex items-center gap-3 mb-4">
           <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white flex-shrink-0">
@@ -204,7 +204,7 @@
 
     <!-- Gemini AI Modal -->
     <div id="ai-modal" class="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm hidden flex-col justify-end">
-      <div class="bg-white w-full rounded-t-[32px] p-6 pb-12 transform translate-y-full transition-transform duration-300 shadow-2xl" id="ai-modal-content">
+      <div class="bg-white w-full rounded-t-[32px] p-4 sm:p-6 pb-12 transform translate-y-full transition-transform duration-300 shadow-2xl" id="ai-modal-content">
         <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
         <div class="flex items-center gap-3 mb-4">
           <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-400 to-purple-500 flex items-center justify-center text-white">
