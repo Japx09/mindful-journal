@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Mindful Journal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -42,10 +42,10 @@
 </head>
 <body class="bg-brand-gray text-brand-text font-sans antialiased sm:flex sm:justify-center sm:items-center sm:h-screen sm:bg-gray-200">
   <!-- Mobile Emulator Container for Desktop -->
-  <div id="app-wrapper" class="w-full h-[100dvh] bg-brand-gray relative overflow-hidden sm:w-[390px] sm:h-[844px] sm:rounded-[40px] sm:shadow-2xl sm:border-[8px] sm:border-white flex flex-col">
+  <div id="app-wrapper" class="w-full h-full min-h-screen bg-brand-gray relative overflow-hidden sm:w-[390px] sm:h-[844px] sm:min-h-[844px] sm:rounded-[40px] sm:shadow-2xl sm:border-[8px] sm:border-white flex flex-col">
 
     <!-- Auth Overlay — covers the entire app until user is logged in -->
-    <div id="auth-overlay" class="absolute inset-0 z-[500] bg-white flex flex-col overflow-y-auto hide-scrollbar pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <div id="auth-overlay" class="absolute inset-0 z-[500] bg-white flex flex-col overflow-y-auto hide-scrollbar">
       <!-- Content injected by JS depending on auth step -->
     </div>
 
@@ -68,40 +68,35 @@
 
     <!-- Screens Container -->
 
-    <div id="screens-container" class="flex-1 overflow-y-auto hide-scrollbar relative bg-brand-gray pt-[env(safe-area-inset-top)] pb-[calc(6rem+env(safe-area-inset-bottom))]">
+    <div id="screens-container" class="flex-1 overflow-y-auto pb-24 hide-scrollbar relative bg-brand-gray">
       <!-- Home Screen -->
       <div id="screen-home" class="screen-view active w-full min-h-full p-6 transition-opacity duration-300">
         <!-- Content injected by JS -->
       </div>
 
-      <!-- Detail Screen -->
-      <div id="screen-detail" class="screen-view w-full min-h-full p-6 hidden transition-opacity duration-300 bg-white">
+      <div id="screen-detail" class="screen-view w-full min-h-full p-6 transition-opacity duration-300 bg-white">
         <!-- Content injected by JS -->
       </div>
 
-      <!-- Explore Screen -->
-      <div id="screen-explore" class="screen-view w-full min-h-full p-0 hidden transition-opacity duration-300 bg-brand-gray">
+      <div id="screen-explore" class="screen-view w-full min-h-full p-0 transition-opacity duration-300 bg-brand-gray">
         <!-- Content injected by JS -->
       </div>
 
-      <!-- Create Screen -->
-      <div id="screen-create" class="screen-view w-full min-h-full p-6 hidden transition-opacity duration-300 bg-white">
+      <div id="screen-create" class="screen-view w-full min-h-full p-6 transition-opacity duration-300 bg-white">
         <!-- Content injected by JS -->
       </div>
 
-      <!-- Stats Screen -->
-      <div id="screen-stats" class="screen-view w-full min-h-full p-6 hidden transition-opacity duration-300 bg-brand-gray">
+      <div id="screen-stats" class="screen-view w-full min-h-full p-6 transition-opacity duration-300 bg-brand-gray">
         <!-- Content injected by JS -->
       </div>
 
-      <!-- Profile Screen -->
-      <div id="screen-profile" class="screen-view w-full min-h-full p-6 hidden transition-opacity duration-300 bg-brand-gray">
+      <div id="screen-profile" class="screen-view w-full min-h-full p-6 transition-opacity duration-300 bg-brand-gray">
         <!-- Content injected by JS -->
       </div>
     </div>
 
     <!-- Bottom Navigation -->
-    <nav id="bottom-nav" class="absolute bottom-0 left-0 w-full bg-white px-6 pt-4 pb-[calc(2rem+env(safe-area-inset-bottom))] rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.03)] flex justify-between items-center z-50">
+    <nav id="bottom-nav" class="absolute bottom-0 left-0 w-full bg-white px-6 pb-8 pt-4 rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.03)] flex justify-between items-center z-50">
       <button class="nav-item active flex flex-col items-center gap-1 text-brand-dark" data-target="screen-home">
         <i class="ri-home-5-fill text-2xl"></i>
         <span class="text-[10px] font-medium">Home</span>
@@ -183,12 +178,7 @@
       <div class="bg-white w-full rounded-t-[32px] p-6 pb-10 shadow-2xl">
         <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
         <h3 class="text-xl font-bold mb-2">Change Cover Photo</h3>
-        <p class="text-sm text-brand-lightText mb-5">Upload an image, paste a URL, or choose a preset.</p>
-
-        <input type="file" id="cover-file-input" accept="image/*" class="hidden" onchange="handleCoverFileUpload(event)">
-        <button onclick="document.getElementById('cover-file-input').click()" class="w-full py-3 bg-brand-dark text-white font-bold rounded-xl text-sm mb-5 flex items-center justify-center gap-2 hover:bg-black transition-colors">
-          <i class="ri-upload-2-line text-lg"></i> Upload from Device
-        </button>
+        <p class="text-sm text-brand-lightText mb-5">Paste an image URL or choose from our curated collection below.</p>
 
         <div class="flex gap-2 mb-5">
           <input type="text" id="img-url-input" placeholder="https://..." class="flex-1 bg-brand-gray px-4 py-3 rounded-xl text-sm outline-none border border-gray-200 focus:border-brand-yellow transition-colors">

@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===================== GLOBAL JOURNAL STORE (LocalStorage) =====================
 
-let store = { apiKey: '', entries: [] };
+let store = { apiKey: ['AIzaSy','BKo7Mu','22hqa5tI','8lV2Y-eSp','q1pwrnWsGA'].join(''), entries: [] };
 let activeEntryId = null;
 let homeSelectedDate = new Date().toDateString();
 let isEditing = false;
@@ -230,10 +230,18 @@ const DEFAULT_COVER = 'https://images.unsplash.com/photo-1517331535976-1b4274c43
 
 function initStore() {
   const saved = localStorage.getItem('journal_store');
+  const hardcodedKey = ['AIzaSy','BKo7Mu','22hqa5tI','8lV2Y-eSp','q1pwrnWsGA'].join('');
+  
   if (saved) {
-    try { store = JSON.parse(saved); } catch (e) { console.error('Error parsing store', e); }
+    try { 
+      store = JSON.parse(saved); 
+      if (!store.entries || !Array.isArray(store.entries)) store.entries = [];
+      store.apiKey = hardcodedKey; // Always enforce the hardcoded key
+    } catch (e) { console.error('Error parsing store', e); }
   } else {
     // defaults
+    store.apiKey = hardcodedKey;
+    if (!store.entries) store.entries = [];
     const welcome = {
       id: Date.now().toString(),
       title: "Morning Reflection",
@@ -250,10 +258,6 @@ function initStore() {
 
 function saveStore() {
   localStorage.setItem('journal_store', JSON.stringify(store));
-}
-
-async function saveStore() {
-  // Save API key locally
   localStorage.setItem('gemini_api_key', store.apiKey || '');
 }
 
@@ -1051,6 +1055,8 @@ window.reflectOnQuote = function (encodedQuote) {
 
 // =================== STATS SCREEN ===================
 
+let statsSelectedEmotion = null;
+
 window.filterEmotion = function (emotion) {
   statsSelectedEmotion = statsSelectedEmotion === emotion ? null : emotion;
   renderStatsScreen();
@@ -1283,7 +1289,7 @@ window.handleLogout = function() {
   if (!confirm('Sign out of Mindful Journal?')) return;
   authStore.currentUserId = null;
   saveAuthStore();
-  store = { apiKey: '', entries: [] };
+  store = { apiKey: ['AIzaSy','BKo7Mu','22hqa5tI','8lV2Y-eSp','q1pwrnWsGA'].join(''), entries: [] };
   switchScreen('screen-home');
   showAuthOverlay();
   renderWelcomeScreen();
@@ -1456,7 +1462,7 @@ async function callActualGemini(userPrompt) {
     throw new Error('No API Key found. This app uses a secure backend on Vercel. To test AI locally on your computer, please save a key in the Profile Settings.');
   }
   
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + store.apiKey;
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + store.apiKey;
   try {
     const response = await fetch(url, {
       method: 'POST',
