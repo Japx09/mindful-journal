@@ -1060,7 +1060,7 @@ function renderDetailScreen() {
             </div>
 
             <div class="w-full">
-              <div id="edit-rte" class="prose prose-sm font-sans text-brand-text leading-[1.8] text-[15px] sm:text-[17px] w-full outline-none min-h-[300px]"></div>
+              <div id="edit-rte" class="prose prose-sm font-sans text-brand-text leading-[2] text-[15px] sm:text-[17px] w-full outline-none min-h-[300px]"></div>
             </div>
           </div>
         </div>
@@ -1121,7 +1121,7 @@ function renderDetailScreen() {
             </div>
           </div>
 
-          <div class="prose prose-sm font-sans text-brand-text leading-[1.8] text-[15px] sm:text-[17px] w-full max-w-none">
+          <div class="prose prose-sm font-sans text-brand-text leading-[2] text-[15px] sm:text-[17px] w-full max-w-none">
             ${page.content || '<p class="italic opacity-50 text-left">No entry written for this page.</p>'}
           </div>
         </div>
