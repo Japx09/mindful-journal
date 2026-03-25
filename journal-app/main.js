@@ -218,6 +218,15 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAuthStore();
   if (authStore.currentUserId) bootApp();
   else { showAuthOverlay(); renderWelcomeScreen(); }
+
+  // Auto-fullscreen on first user interaction (browsers require a user gesture)
+  const autoFS = () => {
+    tryRequestFullscreen();
+    document.removeEventListener('click', autoFS);
+    document.removeEventListener('touchstart', autoFS);
+  };
+  document.addEventListener('click', autoFS, { once: true });
+  document.addEventListener('touchstart', autoFS, { once: true });
 });
 
 // ===================== GLOBAL JOURNAL STORE (LocalStorage) =====================
@@ -344,13 +353,16 @@ window.switchScreen = function (screenId) {
   });
 
   const bottomNav = document.getElementById('bottom-nav');
+  const screensContainer = document.getElementById('screens-container');
   if (bottomNav) {
     if (screenId === 'screen-detail') {
       bottomNav.classList.add('hidden');
       bottomNav.classList.remove('flex');
+      if (screensContainer) screensContainer.classList.remove('pb-24');
     } else {
       bottomNav.classList.remove('hidden');
       bottomNav.classList.add('flex');
+      if (screensContainer) screensContainer.classList.add('pb-24');
     }
   }
 
@@ -996,55 +1008,58 @@ function renderDetailScreen() {
   const totalPages = book.pages.length;
 
   if (isEditing) {
-    container.innerHTML = `<div class="absolute inset-0 z-10 bg-white overflow-y-auto pb-6 flex flex-col items-center min-h-[100vh]">
-      <div class="w-full max-w-2xl flex flex-col min-h-[100vh]">
-        
-        <!-- Notion-Style Cover Header -->
-        <div class="w-full h-[180px] sm:h-[220px] relative mb-6 group cursor-pointer" onclick="openImgPicker()">
-          <img id="detail-cover" src="${book.coverImage || DEFAULT_COVER}" class="w-full h-full object-cover rounded-b-[24px] sm:rounded-b-[32px] shadow-sm">
-          <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity backdrop-blur-sm rounded-b-[24px] sm:rounded-b-[32px]">
-            <i class="ri-image-edit-fill text-3xl mb-1"></i>
-            <span class="text-sm font-bold tracking-wider">CHANGE COVER</span>
-          </div>
-          
-          <!-- Header Actions Floating -->
-          <div class="absolute top-6 left-5 right-5 flex justify-between items-center z-20">
-            <button onclick="toggleEdit()" class="w-10 h-10 rounded-full bg-[#113a4d] text-white border border-white/20 flex items-center justify-center hover:bg-[#0a2533] transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
-              <i class="ri-close-line text-[26px]"></i>
-            </button>
-            <button onclick="saveEdit()" class="px-6 h-10 bg-[#ffb833] text-[#131313] rounded-full font-extrabold text-[15px] tracking-wide shadow-[0_4px_15px_rgba(255,184,51,0.4)] hover:scale-105 transition-transform flex items-center gap-1.5">
-              <i class="ri-check-line text-[22px] font-bold"></i> Save
-            </button>
-          </div>
-        </div>
-
-        <div class="px-5 sm:px-6 flex flex-col flex-1 w-full relative z-30">
-          <!-- Text Align Left -->
-          <div class="text-left mb-3">
-            <p class="text-brand-orange font-medium text-sm tracking-wide">${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
-          </div>
-
-          <input type="text" id="edit-title" value="${book.title}" placeholder="Book Title" class="w-full text-left text-[28px] sm:text-[34px] font-extrabold text-brand-dark mb-4 leading-tight tracking-tight outline-none border-b border-dashed border-gray-200 pb-2 bg-transparent">
-          
-          <div class="flex justify-start mb-6">
-            <select id="edit-emotion" class="bg-brand-orange/10 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-brand-orange outline-none shadow-sm cursor-pointer border border-transparent focus:border-brand-yellow transition-colors">
-              <option value="Happy" ${book.emotion === 'Happy' ? 'selected' : ''}>😊 Happy</option>
-              <option value="Calm" ${book.emotion === 'Calm' ? 'selected' : ''}>😌 Calm</option>
-              <option value="Anxious" ${book.emotion === 'Anxious' ? 'selected' : ''}>😰 Anxious</option>
-              <option value="Sad" ${book.emotion === 'Sad' ? 'selected' : ''}>😔 Sad</option>
-            </select>
-          </div>
-
-          <div class="w-full relative z-10 bg-gray-50 rounded-xl p-2 border border-gray-100 shadow-sm text-left mb-6">
-            ${buildToolbar('edit-rte')}
-          </div>
-
-          <div class="flex-1 w-full pb-4">
-            <div id="edit-rte" class="prose prose-sm font-sans text-brand-text leading-[1.8] text-[16px] sm:text-[18px] w-full outline-none min-h-[300px]"></div>
-          </div>
-        </div>
-
+    container.innerHTML = `<div class="absolute inset-0 z-10 bg-white flex flex-col h-full">
+      
+      <!-- STICKY TOP: Close + Save -->
+      <div class="sticky top-0 z-50 w-full flex justify-between items-center px-5 py-3 bg-white/80 backdrop-blur-md border-b border-gray-100/50">
+        <button onclick="toggleEdit()" class="w-10 h-10 rounded-full bg-[#113a4d] text-white flex items-center justify-center hover:bg-[#0a2533] transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
+          <i class="ri-close-line text-[26px]"></i>
+        </button>
+        <button onclick="saveEdit()" class="px-6 h-10 bg-[#ffb833] text-[#131313] rounded-full font-extrabold text-[15px] tracking-wide shadow-[0_4px_15px_rgba(255,184,51,0.4)] hover:scale-105 transition-transform flex items-center gap-1.5">
+          <i class="ri-check-line text-[22px] font-bold"></i> Save
+        </button>
       </div>
+
+      <!-- SCROLLABLE MIDDLE -->
+      <div class="flex-1 overflow-y-auto">
+        <div class="w-full max-w-2xl mx-auto">
+          
+          <!-- Cover Image -->
+          <div class="w-full h-[180px] sm:h-[220px] relative group cursor-pointer" onclick="openImgPicker()">
+            <img id="detail-cover" src="${book.coverImage || DEFAULT_COVER}" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity backdrop-blur-sm">
+              <i class="ri-image-edit-fill text-3xl mb-1"></i>
+              <span class="text-sm font-bold tracking-wider">CHANGE COVER</span>
+            </div>
+          </div>
+
+          <div class="px-5 sm:px-6 pt-6 pb-8 flex flex-col w-full">
+            <div class="text-left mb-3">
+              <p class="text-brand-orange font-medium text-sm tracking-wide">${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+            </div>
+
+            <input type="text" id="edit-title" value="${book.title}" placeholder="Book Title" class="w-full text-left text-[28px] sm:text-[34px] font-extrabold text-brand-dark mb-4 leading-tight tracking-tight outline-none border-b border-dashed border-gray-200 pb-2 bg-transparent">
+            
+            <div class="flex justify-start mb-6">
+              <select id="edit-emotion" class="bg-brand-orange/10 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-brand-orange outline-none shadow-sm cursor-pointer border border-transparent focus:border-brand-yellow transition-colors">
+                <option value="Happy" ${book.emotion === 'Happy' ? 'selected' : ''}>😊 Happy</option>
+                <option value="Calm" ${book.emotion === 'Calm' ? 'selected' : ''}>😌 Calm</option>
+                <option value="Anxious" ${book.emotion === 'Anxious' ? 'selected' : ''}>😰 Anxious</option>
+                <option value="Sad" ${book.emotion === 'Sad' ? 'selected' : ''}>😔 Sad</option>
+              </select>
+            </div>
+
+            <div class="w-full bg-gray-50 rounded-xl p-2 border border-gray-100 shadow-sm text-left mb-6">
+              ${buildToolbar('edit-rte')}
+            </div>
+
+            <div class="w-full">
+              <div id="edit-rte" class="prose prose-sm font-sans text-brand-text leading-[1.8] text-[16px] sm:text-[18px] w-full outline-none min-h-[300px]"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>`;
 
     const rte = document.getElementById('edit-rte');
@@ -1054,73 +1069,77 @@ function renderDetailScreen() {
   }
 
   // View mode
-  container.innerHTML = `<div class="absolute inset-0 z-10 bg-white overflow-y-auto pb-6 flex flex-col items-center min-h-[100vh]">
-    <div class="w-full max-w-2xl flex flex-col min-h-[100vh]">
+  container.innerHTML = `<div class="absolute inset-0 z-10 bg-white flex flex-col h-full">
+    
+    <!-- FIXED TOP: Back + 3-Dots (floating over content) -->
+    <div class="absolute top-0 left-0 right-0 z-50 flex justify-between items-center px-5 py-4 pointer-events-none">
+      <button onclick="tryExitFullscreen(); switchScreen('screen-home')" class="pointer-events-auto w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.15)] ring-1 ring-white/10">
+        <i class="ri-arrow-left-s-line text-[30px]"></i>
+      </button>
       
-      <!-- Notion-Style Cover Header -->
-      <div class="w-full h-[180px] sm:h-[220px] relative mb-8">
-        <img src="${book.coverImage || DEFAULT_COVER}" class="w-full h-full object-cover rounded-b-[24px] sm:rounded-b-[32px] shadow-sm">
-        <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent pointer-events-none rounded-b-[24px] sm:rounded-b-[32px]"></div>
+      <div class="relative pointer-events-auto">
+        <button onclick="toggleActionMenu()" class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.15)] ring-1 ring-white/10">
+          <i class="ri-more-2-fill text-[24px]"></i>
+        </button>
         
-        <!-- Header Controls Floating over Cover -->
-        <div class="absolute top-6 left-5 right-5 flex justify-between items-center z-50">
-          <button onclick="tryExitFullscreen(); switchScreen('screen-home')" class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.15)] ring-1 ring-white/10">
-            <i class="ri-arrow-left-s-line text-[30px]"></i>
+        <!-- 3-Dot Dropdown Menu -->
+        <div id="detail-action-menu" class="absolute right-0 top-12 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-gray-100 p-2 w-48 hidden flex-col gap-1 origin-top-right animate-[fadeIn_0.2s_ease-out]">
+          <button onclick="toggleEdit()" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-left text-sm font-bold text-brand-dark transition-colors">
+            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-brand-dark"><i class="ri-pencil-fill"></i></div> Edit Page
           </button>
-          
-          <div class="relative">
-            <button onclick="toggleActionMenu()" class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.15)] ring-1 ring-white/10">
-              <i class="ri-more-2-fill text-[24px]"></i>
-            </button>
-            
-            <!-- 3-Dot Dropdown Menu -->
-            <div id="detail-action-menu" class="absolute right-0 top-12 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-gray-100 p-2 w-48 hidden flex-col gap-1 origin-top-right animate-[fadeIn_0.2s_ease-out]">
-              <button onclick="toggleEdit()" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-left text-sm font-bold text-brand-dark transition-colors">
-                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-brand-dark"><i class="ri-pencil-fill"></i></div> Edit Page
-              </button>
-              <button onclick="enhanceEntryWithGemini('${book.id}')" class="flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 text-left text-sm font-bold text-purple-600 transition-colors">
-                <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600"><i class="ri-sparkling-fill"></i></div> Ask AI
-              </button>
-              <div class="border-t border-gray-100 my-1 mx-2"></div>
-              <button onclick="deleteEntry('${book.id}')" class="flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-left text-sm font-bold text-red-500 transition-colors">
-                <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500"><i class="ri-delete-bin-fill"></i></div> Delete Book
-              </button>
+          <button onclick="enhanceEntryWithGemini('${book.id}')" class="flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 text-left text-sm font-bold text-purple-600 transition-colors">
+            <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600"><i class="ri-sparkling-fill"></i></div> Ask AI
+          </button>
+          <div class="border-t border-gray-100 my-1 mx-2"></div>
+          <button onclick="deleteEntry('${book.id}')" class="flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-left text-sm font-bold text-red-500 transition-colors">
+            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500"><i class="ri-delete-bin-fill"></i></div> Delete Book
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCROLLABLE CONTENT (fills between top icons and bottom bar) -->
+    <div class="flex-1 overflow-y-auto pb-[60px]">
+      <div class="w-full max-w-2xl mx-auto min-h-full flex flex-col">
+        
+        <!-- Cover Image -->
+        <div class="w-full h-[180px] sm:h-[220px] relative flex-shrink-0">
+          <img src="${book.coverImage || DEFAULT_COVER}" class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent pointer-events-none"></div>
+        </div>
+
+        <div class="px-5 sm:px-6 pt-6 flex flex-col w-full flex-1">
+          <div class="text-left mb-6">
+            <p class="text-brand-orange font-bold text-sm mb-2 tracking-wide">${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+            <h1 class="text-[28px] sm:text-[34px] font-extrabold text-brand-dark mb-4 leading-tight tracking-tight">${book.title}</h1>
+            <div class="flex justify-start">
+              <span class="px-4 py-1.5 bg-brand-orange/10 text-brand-orange rounded-full text-xs font-bold uppercase tracking-wider">${book.emotion}</span>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div class="px-5 sm:px-6 flex flex-col flex-1 w-full relative z-30">
-        <!-- Title Block -->
-        <div class="text-left mb-6">
-          <p class="text-brand-orange font-bold text-sm mb-2 tracking-wide">${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
-          <h1 class="text-[28px] sm:text-[34px] font-extrabold text-brand-dark mb-4 leading-tight tracking-tight">${book.title}</h1>
-          <div class="flex justify-start">
-            <span class="px-4 py-1.5 bg-brand-orange/10 text-brand-orange rounded-full text-xs font-bold uppercase tracking-wider">${book.emotion}</span>
+          <div class="prose prose-sm font-sans text-brand-text leading-[1.8] text-[16px] sm:text-[18px] w-full flex-1 max-w-none">
+            ${page.content || '<p class="italic opacity-50 text-left">No entry written for this page.</p>'}
           </div>
         </div>
-
-        <!-- Content Body -->
-        <div class="prose prose-sm font-sans text-brand-text leading-[1.8] text-[16px] sm:text-[18px] w-full mb-10 px-1 max-w-none">
-          ${page.content || '<p class="italic opacity-50 text-left">No entry written for this page.</p>'}
-        </div>
-
-        <!-- Bottom Pagination Action Bar -->
-        <div class="flex justify-between items-center w-full mt-auto pt-6 border-t border-gray-100/80">
-          <button onclick="flipPage('prev')" class="font-bold text-gray-400 hover:text-brand-dark transition-colors px-2 py-2 uppercase tracking-widest text-[11px] flex items-center gap-1 group/btn ${activePageIndex === 0 ? 'invisible pointer-events-none' : ''}">
-            <i class="ri-arrow-left-s-line text-lg group-hover/btn:-translate-x-1 transition-transform"></i> Prev
-          </button>
-          
-          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-full">Page ${activePageIndex + 1} of ${totalPages}</span>
-          
-          ${activePageIndex === totalPages - 1 
-            ? `<button onclick="writeNewPage()" class="font-bold text-brand-orange hover:text-orange-600 transition-colors px-2 py-2 flex items-center gap-1 uppercase tracking-widest text-[11px] group/btn">Write <i class="ri-add-line text-lg group-hover/btn:rotate-90 transition-transform"></i></button>`
-            : `<button onclick="flipPage('next')" class="font-bold text-gray-400 hover:text-brand-dark transition-colors px-2 py-2 flex items-center gap-1 uppercase tracking-widest text-[11px] group/btn">Next <i class="ri-arrow-right-s-line text-lg group-hover/btn:translate-x-1 transition-transform"></i></button>`
-          }
-        </div>
       </div>
-
     </div>
+
+    <!-- FIXED BOTTOM: Pagination -->
+    <div class="absolute bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 px-5 py-3">
+      <div class="flex justify-between items-center w-full max-w-2xl mx-auto">
+        <button onclick="flipPage('prev')" class="font-bold text-gray-400 hover:text-brand-dark transition-colors px-2 py-2 uppercase tracking-widest text-[11px] flex items-center gap-1 group/btn ${activePageIndex === 0 ? 'invisible pointer-events-none' : ''}">
+          <i class="ri-arrow-left-s-line text-lg group-hover/btn:-translate-x-1 transition-transform"></i> Prev
+        </button>
+        
+        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-full">Page ${activePageIndex + 1} of ${totalPages}</span>
+        
+        ${activePageIndex === totalPages - 1 
+          ? `<button onclick="writeNewPage()" class="font-bold text-brand-orange hover:text-orange-600 transition-colors px-2 py-2 flex items-center gap-1 uppercase tracking-widest text-[11px] group/btn">Write <i class="ri-add-line text-lg group-hover/btn:rotate-90 transition-transform"></i></button>`
+          : `<button onclick="flipPage('next')" class="font-bold text-gray-400 hover:text-brand-dark transition-colors px-2 py-2 flex items-center gap-1 uppercase tracking-widest text-[11px] group/btn">Next <i class="ri-arrow-right-s-line text-lg group-hover/btn:translate-x-1 transition-transform"></i></button>`
+        }
+      </div>
+    </div>
+
   </div>`;
 }
 
