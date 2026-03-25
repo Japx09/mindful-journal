@@ -1048,6 +1048,13 @@ async function renderExploreScreen() {
       <div class="flex flex-col mb-6">
         <h2 class="text-3xl font-bold tracking-tight text-brand-dark mb-4">Discover Feed</h2>
         
+        <div class="flex gap-2 mb-4">
+          <input type="text" id="explore-search-input" placeholder="Search ideas (e.g. happy, sad, nature)..." class="flex-1 bg-white px-4 py-3 rounded-2xl text-sm outline-none shadow-sm border border-transparent focus:border-brand-yellow transition-colors" onkeydown="if(event.key === 'Enter') searchExploreImages()">
+          <button onclick="searchExploreImages()" class="w-12 h-12 bg-brand-dark text-white rounded-2xl flex-shrink-0 flex items-center justify-center hover:bg-black transition-colors shadow-sm">
+            <i class="ri-search-line"></i>
+          </button>
+        </div>
+
         <div class="bg-white rounded-[24px] p-5 shadow-sm border border-gray-100 mb-2 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onclick="reflectOnQuote('${encodeURIComponent(quoteData.quote)}')">
           <div class="absolute right-0 top-0 opacity-10 text-6xl text-brand-yellow font-serif pt-2 pr-4">"</div>
           <p class="text-sm font-semibold text-brand-dark italic relative z-10">"${quoteData.quote}"</p>
@@ -1062,6 +1069,36 @@ async function renderExploreScreen() {
         ${gridHtml}
       </div>
     </div>`;
+}
+
+window.searchExploreImages = async function() {
+  const query = document.getElementById('explore-search-input').value.trim();
+  if (!query) return;
+
+  const grid = document.getElementById('explore-grid');
+  grid.innerHTML = `<div class="w-full py-10 flex flex-col items-center justify-center col-span-2"><i class="ri-loader-4-line text-brand-dark text-3xl animate-spin mb-2"></i><p class="text-sm text-brand-dark/50">Generating AI memories...</p></div>`;
+
+  // Provide the UI a tiny delay to render the loading state
+  setTimeout(() => {
+    const gridHtml = Array.from({length: 8}).map((_, i) => {
+      const h = Math.floor(180 + Math.random() * 120); // masonry height variation
+      const seed = Math.floor(Math.random() * 999999);
+      // Construct prompt optimized for beautiful Pinterest-style results
+      const prompt = encodeURIComponent(`${query} aesthetic photography, highly detailed, pinterest vibe`);
+      const src = `https://image.pollinations.ai/prompt/${prompt}?width=400&height=${h}&seed=${seed}&nologo=true`;
+
+      return `
+        <div class="break-inside-avoid shadow-sm rounded-[24px] overflow-hidden relative group cursor-pointer mb-4 hover:shadow-md transition-all hover:-translate-y-1" onclick="openExplorePreview('${src}')">
+          <img src="${src}" class="w-full object-cover bg-gray-200" style="height: ${h}px;" loading="lazy" alt="AI Generated Idea">
+          <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <span class="bg-white/95 text-brand-dark px-4 py-2 rounded-full text-xs font-bold shadow-md flex items-center gap-1"><i class="ri-sparkling-fill"></i> AI Journal</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    grid.innerHTML = gridHtml;
+  }, 100);
 }
 
 window.openExplorePreview = function(src) {

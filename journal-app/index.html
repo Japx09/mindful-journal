@@ -209,6 +209,24 @@
       </div>
     </div>
 
+    <!-- Explore Image Preview Modal -->
+    <div id="explore-preview-modal" class="fixed inset-0 z-[400] bg-brand-dark/95 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-white rounded-[32px] overflow-hidden shadow-2xl">
+        <img id="explore-preview-img" src="" class="w-full h-80 object-cover" alt="Preview">
+        <div class="p-6 text-center">
+          <div class="w-12 h-1 bg-brand-yellow rounded-full mx-auto mb-4"></div>
+          <h3 class="text-xl font-bold mb-2 text-brand-dark">Beautiful Choice!</h3>
+          <p class="text-sm text-brand-lightText mb-6">Would you like to use this image as the cover for a new journal entry?</p>
+          <div class="flex gap-3">
+            <button onclick="closeExplorePreview()" class="flex-1 py-3 bg-brand-gray text-brand-dark font-semibold rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
+            <button id="explore-preview-confirm" class="flex-1 py-3 bg-brand-dark text-white font-bold rounded-xl hover:bg-black transition-colors flex items-center justify-center gap-2">
+              <i class="ri-quill-pen-line"></i> Use it
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Gemini AI Modal -->
     <div id="ai-modal" class="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm hidden flex-col justify-end">
       <div class="bg-white w-full rounded-t-[32px] p-4 sm:p-6 pb-12 transform translate-y-full transition-transform duration-300 shadow-2xl" id="ai-modal-content">
