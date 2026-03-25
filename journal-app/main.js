@@ -226,7 +226,7 @@ let store = { apiKey: ['AIzaSy','BKo7Mu','22hqa5tI','8lV2Y-eSp','q1pwrnWsGA'].jo
 let activeEntryId = null;
 let homeSelectedDate = new Date().toDateString();
 let isEditing = false;
-const DEFAULT_COVER = 'https://images.unsplash.com/photo-1517331535976-1b4274c43ba4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+const DEFAULT_COVER = 'https://i.pinimg.com/1200x/4b/61/93/4b6193893b5e78852385512422b9fa9e.jpg';
 
 function initStore() {
   const saved = localStorage.getItem('journal_store');
@@ -1013,33 +1013,88 @@ async function fetchQuote() {
 
 async function renderExploreScreen() {
   const container = document.getElementById('screen-explore');
-  container.innerHTML = `<div class="w-full h-[85vh] flex items-center justify-center bg-brand-dark"><i class="ri-loader-4-line text-white text-4xl animate-spin"></i></div>`;
+  container.innerHTML = `<div class="w-full h-[85vh] flex items-center justify-center bg-brand-gray"><i class="ri-loader-4-line text-brand-dark text-4xl animate-spin"></i></div>`;
 
   const quoteData = await fetchQuote();
-  const imgs = [
-    'https://images.unsplash.com/photo-1470071131384-001b85755536?w=800&q=80',
-    'https://images.unsplash.com/photo-1542401886-65d6c61db217?w=800&q=80',
-    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80',
-    'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80'
+  const baseImgs = [
+    'https://i.pinimg.com/1200x/4b/61/93/4b6193893b5e78852385512422b9fa9e.jpg',
+    'https://i.pinimg.com/1200x/74/a7/91/74a791a1e32c9d381e6bcad683d2a7ba.jpg',
+    'https://i.pinimg.com/1200x/70/29/11/7029115ab573baf10929a5ef2105f81c.jpg',
+    'https://i.pinimg.com/1200x/b2/95/29/b2952920b7923033c314f804318075f7.jpg',
+    'https://i.pinimg.com/736x/4c/b4/b4/4cb4b4af788147056a9e506280818e3b.jpg',
+    'https://i.pinimg.com/736x/93/63/44/936344a9551968ecbde37266d01f3e21.jpg',
+    'https://i.pinimg.com/1200x/39/2e/f9/392ef906f1722f71c103b17f19697b73.jpg',
+    'https://i.pinimg.com/1200x/50/6c/c3/506cc38eaed3badcfc34f2e864b45484.jpg'
   ];
-  const bgImg = imgs[Math.floor(Math.random() * imgs.length)];
+
+  // Repeat and shuffle for a full board
+  let feedImgs = [...baseImgs, ...baseImgs, ...baseImgs];
+  feedImgs.sort(() => Math.random() - 0.5);
+
+  const gridHtml = feedImgs.map((src, i) => {
+    const h = Math.floor(140 + Math.random() * 120); // Random height for masonry effect
+    return `
+      <div class="break-inside-avoid shadow-sm rounded-[24px] overflow-hidden relative group cursor-pointer mb-4 hover:shadow-md transition-all hover:-translate-y-1" onclick="openExplorePreview('${src}')">
+        <img src="${src}" class="w-full object-cover" style="height: ${h}px;" loading="lazy" alt="Pinterest Idea">
+        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <span class="bg-white/95 text-brand-dark px-4 py-2 rounded-full text-xs font-bold shadow-md flex items-center gap-1"><i class="ri-add-line"></i> Journal</span>
+        </div>
+      </div>
+    `;
+  }).join('');
 
   container.innerHTML = `
-    <div class="w-full min-h-[85vh] relative overflow-hidden flex flex-col justify-end pb-36 pt-12 px-8">
-      <img src="${bgImg}" alt="Explore" class="absolute inset-0 w-full h-full object-cover">
-      <div class="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/90"></div>
-      <div class="relative z-20">
-        <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full mb-6 border border-white/30">
-          <i class="ri-sun-cloudry-line text-white text-sm"></i>
-          <span class="text-white text-xs font-semibold tracking-wide uppercase">Daily Inspiration</span>
+    <div class="w-full min-h-full bg-brand-gray pt-10 px-4 sm:px-6 pb-28">
+      <div class="flex flex-col mb-6">
+        <h2 class="text-3xl font-bold tracking-tight text-brand-dark mb-4">Discover Feed</h2>
+        
+        <div class="bg-white rounded-[24px] p-5 shadow-sm border border-gray-100 mb-2 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onclick="reflectOnQuote('${encodeURIComponent(quoteData.quote)}')">
+          <div class="absolute right-0 top-0 opacity-10 text-6xl text-brand-yellow font-serif pt-2 pr-4">"</div>
+          <p class="text-sm font-semibold text-brand-dark italic relative z-10">"${quoteData.quote}"</p>
+          <p class="text-xs text-brand-lightText mt-2 font-medium flex justify-between items-center">
+            <span>— ${quoteData.author}</span>
+            <span class="bg-brand-gray px-2 py-1 rounded-full"><i class="ri-quill-pen-line"></i> Reflect</span>
+          </p>
         </div>
-        <h2 class="text-white font-serif text-3xl font-medium leading-snug mb-4 drop-shadow-md">"${quoteData.quote}"</h2>
-        <p class="text-white/70 font-medium tracking-wider uppercase text-sm mb-8">— ${quoteData.author}</p>
-        <button onclick="reflectOnQuote('${encodeURIComponent(quoteData.quote)}')" class="w-full py-4 bg-white/20 backdrop-blur-xl border border-white/50 text-white rounded-2xl font-bold hover:bg-white/30 transition-colors flex items-center justify-center gap-2">
-          <i class="ri-quill-pen-line text-xl"></i> Reflect on this
-        </button>
+      </div>
+      
+      <div class="columns-2 gap-4" id="explore-grid">
+        ${gridHtml}
       </div>
     </div>`;
+}
+
+window.openExplorePreview = function(src) {
+  const modal = document.getElementById('explore-preview-modal');
+  document.getElementById('explore-preview-img').src = src;
+  const btn = document.getElementById('explore-preview-confirm');
+  
+  btn.onclick = () => {
+    closeExplorePreview();
+    _createCoverImage = src;
+    switchScreen('screen-create');
+    
+    // Auto populate cover logic visually
+    setTimeout(() => {
+      const coverEl = document.getElementById('create-cover');
+      const containerEl = document.getElementById('create-cover-container');
+      const btnAddEl = document.getElementById('create-cover-btn');
+      if (coverEl && containerEl) {
+        coverEl.src = src;
+        containerEl.classList.remove('hidden');
+        if (btnAddEl) btnAddEl.classList.add('hidden');
+      }
+    }, 50);
+  };
+  
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+window.closeExplorePreview = function() {
+  const modal = document.getElementById('explore-preview-modal');
+  modal.classList.remove('flex');
+  modal.classList.add('hidden');
 }
 
 window.reflectOnQuote = function (encodedQuote) {
