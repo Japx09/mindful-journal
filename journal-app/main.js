@@ -41,7 +41,7 @@ function dismissAuthOverlay() {
 }
 
 // ---- AUTH SCREENS ----
-window.renderWelcomeScreen = function() {
+window.renderWelcomeScreen = function () {
   document.getElementById('auth-overlay').innerHTML = `
     <div class="auth-screen auth-welcome-bg flex flex-col flex-1 items-center justify-between p-8 pb-14" style="min-height:100%">
       <div class="w-full flex justify-end"><div class="w-2 h-2 rounded-full bg-white/30"></div></div>
@@ -61,7 +61,7 @@ window.renderWelcomeScreen = function() {
 }
 function renderWelcomeScreen() { window.renderWelcomeScreen(); }
 
-window.renderLoginScreen = function() {
+window.renderLoginScreen = function () {
   document.getElementById('auth-overlay').innerHTML = `
     <div class="auth-screen flex flex-col flex-1 p-7 pt-14" style="min-height:100%">
       <button onclick="renderWelcomeScreen()" class="w-10 h-10 rounded-full bg-brand-gray flex items-center justify-center mb-8"><i class="ri-arrow-left-s-line text-2xl text-brand-dark"></i></button>
@@ -87,12 +87,12 @@ window.renderLoginScreen = function() {
 }
 function renderLoginScreen() { window.renderLoginScreen(); }
 
-window.handleLogin = function() {
+window.handleLogin = function () {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
-  const pass  = document.getElementById('login-password').value;
-  const err   = document.getElementById('login-error');
+  const pass = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
   if (!email || !pass) { err.textContent = 'Please fill in all fields.'; err.classList.remove('hidden'); return; }
-  
+
   if (authStore.users[email] && authStore.users[email].password === pass) {
     authStore.currentUserId = email;
     saveAuthStore();
@@ -103,7 +103,7 @@ window.handleLogin = function() {
   }
 }
 
-window.renderSignUpScreen = function() {
+window.renderSignUpScreen = function () {
   document.getElementById('auth-overlay').innerHTML = `
     <div class="auth-screen flex flex-col flex-1 p-7 pt-14 overflow-y-auto" style="min-height:100%">
       <button onclick="renderWelcomeScreen()" class="w-10 h-10 rounded-full bg-brand-gray flex items-center justify-center mb-8"><i class="ri-arrow-left-s-line text-2xl text-brand-dark"></i></button>
@@ -130,7 +130,7 @@ window.renderSignUpScreen = function() {
 }
 function renderSignUpScreen() { window.renderSignUpScreen(); }
 
-window.togglePasswordVisibility = function(inputId, iconId) {
+window.togglePasswordVisibility = function (inputId, iconId) {
   const input = document.getElementById(inputId);
   const icon = document.getElementById(iconId);
   if (!input || !icon) return;
@@ -143,11 +143,11 @@ window.togglePasswordVisibility = function(inputId, iconId) {
   }
 }
 
-window.handleSignUp = function() {
-  const name  = document.getElementById('signup-name').value.trim();
+window.handleSignUp = function () {
+  const name = document.getElementById('signup-name').value.trim();
   const email = document.getElementById('signup-email').value.trim().toLowerCase();
-  const pass  = document.getElementById('signup-password').value;
-  const err   = document.getElementById('signup-error');
+  const pass = document.getElementById('signup-password').value;
+  const err = document.getElementById('signup-error');
 
   if (!name || !email || !pass) { err.textContent = 'Please fill in all fields.'; err.classList.remove('hidden'); return; }
   if (pass.length < 6) { err.textContent = 'Password must be at least 6 characters.'; err.classList.remove('hidden'); return; }
@@ -160,7 +160,7 @@ window.handleSignUp = function() {
 }
 
 let _selectedRole = null;
-window.renderRoleScreen = function() {
+window.renderRoleScreen = function () {
   document.getElementById('auth-overlay').innerHTML = `
     <div class="auth-screen flex flex-col flex-1 p-7 pt-14" style="min-height:100%">
       <div class="w-14 h-14 rounded-[18px] bg-brand-yellow/20 flex items-center justify-center mb-6"><i class="ri-user-heart-line text-brand-yellow text-2xl"></i></div>
@@ -182,7 +182,7 @@ window.renderRoleScreen = function() {
 }
 function renderRoleScreen() { window.renderRoleScreen(); }
 
-window.selectRole = function(role) {
+window.selectRole = function (role) {
   _selectedRole = role;
   document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
   document.getElementById(`role-${role.toLowerCase()}`).classList.add('selected');
@@ -190,7 +190,7 @@ window.selectRole = function(role) {
   btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; btn.classList.add('yellow');
 }
 
-window.confirmRole = function() {
+window.confirmRole = function () {
   if (!_selectedRole) return;
   const user = getCurrentUser();
   if (user) {
@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===================== GLOBAL JOURNAL STORE (LocalStorage) =====================
 
-let store = { apiKey: ['AIzaSy','BKo7Mu','22hqa5tI','8lV2Y-eSp','q1pwrnWsGA'].join(''), entries: [] };
+let store = { apiKey: ['AIzaSy', 'BKo7Mu', '22hqa5tI', '8lV2Y-eSp', 'q1pwrnWsGA'].join(''), entries: [] };
 let activeEntryId = null;
 let homeSelectedDate = new Date().toDateString();
 let isEditing = false;
@@ -230,18 +230,30 @@ const DEFAULT_COVER = 'https://i.pinimg.com/1200x/4b/61/93/4b6193893b5e788523855
 
 function initStore() {
   const saved = localStorage.getItem('journal_store');
-  const hardcodedKey = ['AIzaSy','BKo7Mu','22hqa5tI','8lV2Y-eSp','q1pwrnWsGA'].join('');
-  
+  const hardcodedKey = ['AIzaSy', 'BKo7Mu', '22hqa5tI', '8lV2Y-eSp', 'q1pwrnWsGA'].join('');
+
+  const defaultExploreImgs = [
+    { src: 'https://i.pinimg.com/1200x/4b/61/93/4b6193893b5e78852385512422b9fa9e.jpg', tags: ['happy', 'freedom', 'nature', 'joy', 'smile', 'bright'] },
+    { src: 'https://i.pinimg.com/1200x/74/a7/91/74a791a1e32c9d381e6bcad683d2a7ba.jpg', tags: ['calm', 'drive', 'sunset', 'roadtrip', 'peace', 'warm'] },
+    { src: 'https://i.pinimg.com/1200x/70/29/11/7029115ab573baf10929a5ef2105f81c.jpg', tags: ['calm', 'coffee', 'matcha', 'morning', 'cafe', 'chill', 'drink'] },
+    { src: 'https://i.pinimg.com/1200x/b2/95/29/b2952920b7923033c314f804318075f7.jpg', tags: ['happy', 'beach', 'sunset', 'ocean', 'peace', 'water', 'vacation'] },
+    { src: 'https://i.pinimg.com/736x/4c/b4/b4/4cb4b4af788147056a9e506280818e3b.jpg', tags: ['calm', 'dreamy', 'clouds', 'pink', 'aesthetic', 'sky'] },
+    { src: 'https://i.pinimg.com/736x/93/63/44/936344a9551968ecbde37266d01f3e21.jpg', tags: ['sad', 'lonely', 'night', 'city', 'lights', 'moody', 'dark', 'anxious'] },
+    { src: 'https://i.pinimg.com/1200x/39/2e/f9/392ef906f1722f71c103b17f19697b73.jpg', tags: ['calm', 'cozy', 'book', 'read', 'indoor', 'home', 'peace'] },
+    { src: 'https://i.pinimg.com/1200x/50/6c/c3/506cc38eaed3badcfc34f2e864b45484.jpg', tags: ['happy', 'flowers', 'spring', 'cute', 'bright', 'love', 'nature'] }
+  ];
+
   if (saved) {
-    try { 
-      store = JSON.parse(saved); 
+    try {
+      store = JSON.parse(saved);
       if (!store.entries || !Array.isArray(store.entries)) store.entries = [];
-      store.apiKey = hardcodedKey; // Always enforce the hardcoded key
+      if (!store.exploreImages || !Array.isArray(store.exploreImages) || store.exploreImages.length === 0) store.exploreImages = defaultExploreImgs;
+      store.apiKey = hardcodedKey;
     } catch (e) { console.error('Error parsing store', e); }
   } else {
-    // defaults
     store.apiKey = hardcodedKey;
-    if (!store.entries) store.entries = [];
+    store.entries = [];
+    store.exploreImages = defaultExploreImgs;
     const welcome = {
       id: Date.now().toString(),
       title: "Morning Reflection",
@@ -290,29 +302,43 @@ async function deleteEntry(entryId) {
 
 
 // --- NAVIGATION ---
+let previousScreen = 'screen-home';
+
 function initNavigation() {
   const navItems = document.querySelectorAll('.nav-item');
   navItems.forEach(item => {
     item.addEventListener('click', (e) => {
       const targetId = e.currentTarget.getAttribute('data-target');
       if (targetId) switchScreen(targetId);
-      navItems.forEach(n => {
-        n.classList.remove('text-brand-dark');
-        n.classList.add('text-brand-lightText', 'grayscale', 'opacity-60');
-      });
-      e.currentTarget.classList.remove('text-brand-lightText', 'grayscale', 'opacity-60');
-      e.currentTarget.classList.add('text-brand-dark');
     });
   });
 }
 
 window.switchScreen = function (screenId) {
+  const currentActive = document.querySelector('.screen-view.active');
+  if (currentActive && currentActive.id !== screenId && currentActive.id !== 'screen-create' && currentActive.id !== 'screen-detail') {
+    previousScreen = currentActive.id || 'screen-home';
+  }
+
   document.querySelectorAll('.screen-view').forEach(screen => {
     screen.classList.remove('active');
   });
+  
   const target = document.getElementById(screenId);
   if (target) {
     target.classList.add('active');
+    
+    // Sync Navigation Bar UI
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(n => {
+      n.classList.remove('text-brand-dark');
+      n.classList.add('text-brand-lightText', 'grayscale', 'opacity-60');
+      if (n.getAttribute('data-target') === screenId) {
+        n.classList.remove('text-brand-lightText', 'grayscale', 'opacity-60');
+        n.classList.add('text-brand-dark');
+      }
+    });
+
     if (screenId === 'screen-home') renderHomeScreen();
     if (screenId === 'screen-detail') { isEditing = false; renderDetailScreen(); }
     if (screenId === 'screen-create') renderCreateScreen();
@@ -383,11 +409,11 @@ function buildToolbar(targetId) {
   `;
 }
 
-window.execCmd = function(cmd) {
+window.execCmd = function (cmd) {
   document.execCommand(cmd, false, null);
 }
 
-window.execFormatBlock = function(value, targetId) {
+window.execFormatBlock = function (value, targetId) {
   document.execCommand('formatBlock', false, value);
   document.getElementById(targetId)?.focus();
 }
@@ -473,15 +499,15 @@ document.addEventListener('mousedown', (e) => {
 
 // ---- AI REWRITE SELECTED TEXT ----
 
-window.aiRewriteSelection = async function(mode) {
+window.aiRewriteSelection = async function (mode) {
   const selectedText = getSelectedPlainText();
   if (!selectedText) { hideAiSelectionPopup(); return; }
 
   hideAiSelectionPopup();
 
   const prompts = {
-    improve:   `Improve the writing quality of the following text while keeping the same core meaning and first-person perspective. Return only the rewritten text, nothing else:\n\n"${selectedText}"`,
-    shorter:   `Make this shorter and more concise while keeping the key ideas. Return only the rewritten text:\n\n"${selectedText}"`,
+    improve: `Improve the writing quality of the following text while keeping the same core meaning and first-person perspective. Return only the rewritten text, nothing else:\n\n"${selectedText}"`,
+    shorter: `Make this shorter and more concise while keeping the key ideas. Return only the rewritten text:\n\n"${selectedText}"`,
     emotional: `Rewrite this to sound more emotionally expressive and heartfelt, as if writing in a personal diary. Return only the rewritten text:\n\n"${selectedText}"`
   };
 
@@ -524,7 +550,7 @@ function replaceSelectionWithAiText(newText) {
 
 let _askAiMode = 'insert'; // 'insert' | 'replace'
 
-window.aiRewriteCustom = function() {
+window.aiRewriteCustom = function () {
   const selectedText = getSelectedPlainText();
   if (!selectedText) return;
   _askAiMode = 'replace';
@@ -533,7 +559,7 @@ window.aiRewriteCustom = function() {
   openAskAiModal();
 }
 
-window.openAskAiForCursor = function(rteId) {
+window.openAskAiForCursor = function (rteId) {
   _activeRteId = rteId;
   _askAiMode = 'insert';
   // Save cursor position
@@ -552,13 +578,13 @@ function openAskAiModal() {
   setTimeout(() => document.getElementById('ask-ai-input').focus(), 100);
 }
 
-window.closeAskAiModal = function() {
+window.closeAskAiModal = function () {
   const modal = document.getElementById('ask-ai-modal');
   modal.classList.add('hidden');
   modal.classList.remove('flex');
 }
 
-window.askAiQuickAction = async function(instruction) {
+window.askAiQuickAction = async function (instruction) {
   const selectedText = _askAiMode === 'replace' ? getSelectedPlainText() : null;
   const prompt = selectedText
     ? `${instruction}. Return only the result, no explanation:\n\n"${selectedText}"`
@@ -566,7 +592,7 @@ window.askAiQuickAction = async function(instruction) {
   await runAskAi(prompt);
 }
 
-window.askAiCustomSubmit = async function() {
+window.askAiCustomSubmit = async function () {
   const input = document.getElementById('ask-ai-input')?.value.trim();
   if (!input) return;
   const selectedText = _askAiMode === 'replace' ? getSelectedPlainText() : null;
@@ -624,7 +650,7 @@ function insertTextAtCursor(text) {
 
 // =================== HOME SCREEN ===================
 
-window.setHomeDate = function(dateStr) {
+window.setHomeDate = function (dateStr) {
   homeSelectedDate = dateStr;
   renderHomeScreen();
 }
@@ -696,7 +722,7 @@ function renderHomeScreen() {
       </div>
     </div>`).join('');
 
-  if (quickEntries.length === 0) quickJournalsHtml = `<div class="w-full text-center py-6 text-brand-lightText text-sm bg-white/50 rounded-[32px] border border-gray-100">No entries on ${selectedDateObj.toLocaleDateString(undefined, {month:'long', day:'numeric'})}.<br/><br/><button onclick="switchScreen('screen-create')" class="text-brand-orange font-bold">Write one now</button></div>`;
+  if (quickEntries.length === 0) quickJournalsHtml = `<div class="w-full text-center py-6 text-brand-lightText text-sm bg-white/50 rounded-[32px] border border-gray-100">No entries on ${selectedDateObj.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}.<br/><br/><button onclick="switchScreen('screen-create')" class="text-brand-orange font-bold">Write one now</button></div>`;
 
   const user = getCurrentUser();
   const rawName = user && user.name ? user.name : 'Friend';
@@ -800,15 +826,15 @@ window.applyCustomImageUrl = function () {
   applyPresetImage(url);
 }
 
-window.handleCoverFileUpload = function(event) {
+window.handleCoverFileUpload = function (event) {
   const file = event.target.files?.[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) { alert('Please select an image file.'); return; }
   // Compressing or limiting large files is vital for localStorage limits (~5MB total)
   if (file.size > 2 * 1024 * 1024) { alert('Image too large. Please pick one under 2 MB to avoid running out of storage space.'); return; }
-  
+
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = function (e) {
     applyPresetImage(e.target.result); // Reuse the same logic to set image
   };
   reader.readAsDataURL(file);
@@ -1016,26 +1042,16 @@ async function renderExploreScreen() {
   container.innerHTML = `<div class="w-full h-[85vh] flex items-center justify-center bg-brand-gray"><i class="ri-loader-4-line text-brand-dark text-4xl animate-spin"></i></div>`;
 
   const quoteData = await fetchQuote();
-  const baseImgs = [
-    'https://i.pinimg.com/1200x/4b/61/93/4b6193893b5e78852385512422b9fa9e.jpg',
-    'https://i.pinimg.com/1200x/74/a7/91/74a791a1e32c9d381e6bcad683d2a7ba.jpg',
-    'https://i.pinimg.com/1200x/70/29/11/7029115ab573baf10929a5ef2105f81c.jpg',
-    'https://i.pinimg.com/1200x/b2/95/29/b2952920b7923033c314f804318075f7.jpg',
-    'https://i.pinimg.com/736x/4c/b4/b4/4cb4b4af788147056a9e506280818e3b.jpg',
-    'https://i.pinimg.com/736x/93/63/44/936344a9551968ecbde37266d01f3e21.jpg',
-    'https://i.pinimg.com/1200x/39/2e/f9/392ef906f1722f71c103b17f19697b73.jpg',
-    'https://i.pinimg.com/1200x/50/6c/c3/506cc38eaed3badcfc34f2e864b45484.jpg'
-  ];
-
-  // Repeat and shuffle for a full board
-  let feedImgs = [...baseImgs, ...baseImgs, ...baseImgs];
+  
+  let feedImgs = [...store.exploreImages];
+  while (feedImgs.length < 12) { feedImgs = [...feedImgs, ...store.exploreImages]; }
   feedImgs.sort(() => Math.random() - 0.5);
 
-  const gridHtml = feedImgs.map((src, i) => {
-    const h = Math.floor(140 + Math.random() * 120); // Random height for masonry effect
+  const gridHtml = feedImgs.map((img, i) => {
+    const h = Math.floor(140 + Math.random() * 120);
     return `
-      <div class="break-inside-avoid shadow-sm rounded-[24px] overflow-hidden relative group cursor-pointer mb-4 hover:shadow-md transition-all hover:-translate-y-1" onclick="openExplorePreview('${src}')">
-        <img src="${src}" class="w-full object-cover" style="height: ${h}px;" loading="lazy" alt="Pinterest Idea">
+      <div class="break-inside-avoid shadow-sm rounded-[24px] overflow-hidden relative group cursor-pointer mb-4 hover:shadow-md transition-all hover:-translate-y-1" onclick="openExplorePreview('${img.src}')">
+        <img src="${img.src}" class="w-full object-cover bg-gray-200" style="height: ${h}px;" loading="lazy" alt="${img.tags[0]} Pinterest Idea">
         <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <span class="bg-white/95 text-brand-dark px-4 py-2 rounded-full text-xs font-bold shadow-md flex items-center gap-1"><i class="ri-add-line"></i> Journal</span>
         </div>
@@ -1046,7 +1062,10 @@ async function renderExploreScreen() {
   container.innerHTML = `
     <div class="w-full min-h-full bg-brand-gray pt-10 px-4 sm:px-6 pb-28">
       <div class="flex flex-col mb-6">
-        <h2 class="text-3xl font-bold tracking-tight text-brand-dark mb-4">Discover Feed</h2>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-3xl font-bold tracking-tight text-brand-dark">Discover Feed</h2>
+          <button onclick="openExploreAddModal()" class="w-10 h-10 bg-brand-yellow text-white rounded-full flex items-center justify-center shadow-sm hover:scale-105 transition-transform"><i class="ri-add-line text-xl"></i></button>
+        </div>
         
         <div class="flex gap-2 mb-4">
           <input type="text" id="explore-search-input" placeholder="Search ideas (e.g. happy, sad, nature)..." class="flex-1 bg-white px-4 py-3 rounded-2xl text-sm outline-none shadow-sm border border-transparent focus:border-brand-yellow transition-colors" onkeydown="if(event.key === 'Enter') searchExploreImages()">
@@ -1072,45 +1091,92 @@ async function renderExploreScreen() {
 }
 
 window.searchExploreImages = async function() {
-  const query = document.getElementById('explore-search-input').value.trim();
+  const query = document.getElementById('explore-search-input').value.trim().toLowerCase();
   if (!query) return;
 
   const grid = document.getElementById('explore-grid');
-  grid.innerHTML = `<div class="w-full py-10 flex flex-col items-center justify-center col-span-2"><i class="ri-loader-4-line text-brand-dark text-3xl animate-spin mb-2"></i><p class="text-sm text-brand-dark/50">Generating AI memories...</p></div>`;
+  grid.innerHTML = `<div class="w-full py-10 flex flex-col items-center justify-center col-span-2"><i class="ri-loader-4-line text-brand-dark text-3xl animate-spin mb-2"></i><p class="text-sm text-brand-dark/50">Finding aesthetic ideas...</p></div>`;
 
-  // Provide the UI a tiny delay to render the loading state
   setTimeout(() => {
-    const gridHtml = Array.from({length: 8}).map((_, i) => {
-      const h = Math.floor(180 + Math.random() * 120); // masonry height variation
-      const seed = Math.floor(Math.random() * 999999);
-      // Construct prompt optimized for beautiful Pinterest-style results
-      const prompt = encodeURIComponent(`${query} aesthetic photography, highly detailed, pinterest vibe`);
-      const src = `https://image.pollinations.ai/prompt/${prompt}?width=400&height=${h}&seed=${seed}&nologo=true`;
+    let matchingImgs = store.exploreImages.filter(img => img.tags.some(t => query.includes(t) || t.includes(query) || t.includes(query.toLowerCase())));
+    
+    // Fallback if no matching tag: just return top 4 from store to guarantee something is shown
+    if (matchingImgs.length === 0) {
+      matchingImgs = store.exploreImages.slice(0, 4);
+    }
 
+    let feedImgs = [...matchingImgs];
+    while (feedImgs.length < 10 && feedImgs.length > 0) { feedImgs = [...feedImgs, ...matchingImgs]; } // Pad results
+    feedImgs.sort(() => Math.random() - 0.5);
+
+    const gridHtml = feedImgs.map(img => {
+      const h = Math.floor(140 + Math.random() * 120);
       return `
-        <div class="break-inside-avoid shadow-sm rounded-[24px] overflow-hidden relative group cursor-pointer mb-4 hover:shadow-md transition-all hover:-translate-y-1" onclick="openExplorePreview('${src}')">
-          <img src="${src}" class="w-full object-cover bg-gray-200" style="height: ${h}px;" loading="lazy" alt="AI Generated Idea">
+        <div class="break-inside-avoid shadow-sm rounded-[24px] overflow-hidden relative group cursor-pointer mb-4 hover:shadow-md transition-all hover:-translate-y-1" onclick="openExplorePreview('${img.src}')">
+          <img src="${img.src}" class="w-full object-cover bg-gray-200" style="height: ${h}px;" loading="lazy" alt="${img.tags[0]} Aesthetic">
           <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <span class="bg-white/95 text-brand-dark px-4 py-2 rounded-full text-xs font-bold shadow-md flex items-center gap-1"><i class="ri-sparkling-fill"></i> AI Journal</span>
+            <span class="bg-white/95 text-brand-dark px-4 py-2 rounded-full text-xs font-bold shadow-md flex items-center gap-1"><i class="ri-add-line"></i> Journal</span>
           </div>
         </div>
       `;
     }).join('');
     
     grid.innerHTML = gridHtml;
-  }, 100);
+  }, 300);
 }
 
-window.openExplorePreview = function(src) {
+window.openExploreAddModal = function() {
+  document.getElementById('explore-add-url').value = '';
+  document.getElementById('explore-add-tags').value = '';
+  const modal = document.getElementById('explore-add-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+window.closeExploreAddModal = function() {
+  const modal = document.getElementById('explore-add-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+window.handleExploreFileUpload = function(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { alert('Please select an image file.'); return; }
+  if (file.size > 2 * 1024 * 1024) { alert('Image too large. Max 2MB.'); return; }
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('explore-add-url').value = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+window.saveExploreInspiration = function() {
+  const url = document.getElementById('explore-add-url').value.trim();
+  const tagsStr = document.getElementById('explore-add-tags').value.trim();
+  if (!url) { alert('Please provide an image URL or upload one from your device.'); return; }
+  
+  let tags = tagsStr.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
+  if (tags.length === 0) tags = ['custom', 'aesthetic'];
+  
+  store.exploreImages.unshift({ src: url, tags: tags });
+  saveStore();
+  closeExploreAddModal();
+  renderExploreScreen(); // Immediately reload grid with new image!
+}
+
+window.openExplorePreview = function (src) {
   const modal = document.getElementById('explore-preview-modal');
   document.getElementById('explore-preview-img').src = src;
   const btn = document.getElementById('explore-preview-confirm');
-  
+
   btn.onclick = () => {
     closeExplorePreview();
     _createCoverImage = src;
     switchScreen('screen-create');
-    
+
     // Auto populate cover logic visually
     setTimeout(() => {
       const coverEl = document.getElementById('create-cover');
@@ -1123,12 +1189,12 @@ window.openExplorePreview = function(src) {
       }
     }, 50);
   };
-  
+
   modal.classList.remove('hidden');
   modal.classList.add('flex');
 }
 
-window.closeExplorePreview = function() {
+window.closeExplorePreview = function () {
   const modal = document.getElementById('explore-preview-modal');
   modal.classList.remove('flex');
   modal.classList.add('hidden');
@@ -1160,7 +1226,7 @@ function renderStatsScreen() {
   const counts = { "Happy": 0, "Sad": 0, "Calm": 0, "Anxious": 0 };
   store.entries.forEach(e => { if (counts[e.emotion] !== undefined) counts[e.emotion]++; });
   const pct = (em) => total === 0 ? 0 : Math.round((counts[em] / total) * 100);
-  
+
   const bars = [
     { key: 'Happy', color: '#FFB833', pct: pct('Happy') },
     { key: 'Sad', color: '#8B5A4B', pct: pct('Sad') },
@@ -1169,9 +1235,9 @@ function renderStatsScreen() {
   ];
 
   const barsHtml = bars.map((b, i) => `
-    <div class="flex flex-col items-center gap-3 h-full flex-1 cursor-pointer hover:opacity-80 transition-opacity" onclick="filterEmotion('${b.key}')" style="--delay:${i*100}ms">
+    <div class="flex flex-col items-center gap-3 h-full flex-1 cursor-pointer hover:opacity-80 transition-opacity" onclick="filterEmotion('${b.key}')" style="--delay:${i * 100}ms">
       <div class="w-full bg-brand-gray rounded-full h-full relative overflow-hidden flex items-end ${statsSelectedEmotion === b.key ? 'ring-2 ring-offset-2' : ''}" style="ring-color:${b.color}">
-        <div class="w-full rounded-full flex items-end justify-center pb-3 transition-all duration-1000 ease-out" style="height:0%; background:${b.color}; transition-delay:${i*100}ms" data-height="${Math.max(b.pct, 15)}%">
+        <div class="w-full rounded-full flex items-end justify-center pb-3 transition-all duration-1000 ease-out" style="height:0%; background:${b.color}; transition-delay:${i * 100}ms" data-height="${Math.max(b.pct, 15)}%">
           <span class="text-xs font-semibold text-white">${b.pct}%</span>
         </div>
       </div>
@@ -1226,7 +1292,7 @@ function renderProfileScreen() {
   const user = getCurrentUser();
   if (!user) { container.innerHTML = '<p class="text-center mt-20">Not logged in.</p>'; return; }
 
-  const roleIcon  = user.role === 'Student' ? '🎓' : user.role === 'Employee' ? '💼' : '👤';
+  const roleIcon = user.role === 'Student' ? '🎓' : user.role === 'Employee' ? '💼' : '👤';
   const roleColor = user.role === 'Student' ? 'bg-blue-100 text-blue-700' : user.role === 'Employee' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600';
 
   container.innerHTML = `
@@ -1287,7 +1353,7 @@ function renderProfileScreen() {
   `;
 }
 
-window.saveUserProfile = function() {
+window.saveUserProfile = function () {
   const user = getCurrentUser();
   if (!user) return;
   const name = document.getElementById('profile-name')?.value.trim();
@@ -1302,11 +1368,11 @@ window.saveUserProfile = function() {
   if (btn) { btn.textContent = '✓ Saved!'; setTimeout(() => { btn.textContent = 'Save Changes'; }, 1500); }
 }
 
-window.openChangeRole = function() {
+window.openChangeRole = function () {
   showAuthOverlay();
   renderRoleScreen();
   const origConfirm = window.confirmRole;
-  window.confirmRole = function() {
+  window.confirmRole = function () {
     if (!_selectedRole) return;
     const user = getCurrentUser();
     if (user) { user.role = _selectedRole; saveAuthStore(); }
@@ -1316,7 +1382,7 @@ window.openChangeRole = function() {
   };
 }
 
-window.requestChangeEmail = function() {
+window.requestChangeEmail = function () {
   const newEmail = prompt("Enter your new email address:");
   if (!newEmail) return;
   alert(`An OTP (One-Time Password) has been sent to ${newEmail} (simulated for local storage).`);
@@ -1326,27 +1392,27 @@ window.requestChangeEmail = function() {
     const oldEmail = user.email;
     const newEmailLower = newEmail.trim().toLowerCase();
     if (authStore.users[newEmailLower]) { alert('Email is already in use!'); return; }
-    
+
     user.email = newEmailLower;
     // Re-key the users object
     authStore.users[newEmailLower] = user;
     delete authStore.users[oldEmail];
     authStore.currentUserId = newEmailLower;
     saveAuthStore();
-    
+
     alert("Email updated successfully!");
     renderProfileScreen();
   }
 }
 
-window.requestChangePassword = function() {
+window.requestChangePassword = function () {
   const user = getCurrentUser();
   const oldPass = prompt("Enter your CURRENT password:");
   if (!oldPass || oldPass !== user.password) { alert("Incorrect current password."); return; }
-  
+
   const newPass = prompt("Enter your NEW password (min 6 characters):");
   if (!newPass || newPass.length < 6) { alert("Password must be at least 6 characters."); return; }
-  
+
   alert(`An OTP has been sent to ${user.email} for verification (simulated).`);
   const otp = prompt("Please enter the 6-digit OTP:");
   if (otp) {
@@ -1356,11 +1422,11 @@ window.requestChangePassword = function() {
   }
 }
 
-window.handleLogout = function() {
+window.handleLogout = function () {
   if (!confirm('Sign out of Mindful Journal?')) return;
   authStore.currentUserId = null;
   saveAuthStore();
-  store = { apiKey: ['AIzaSy','BKo7Mu','22hqa5tI','8lV2Y-eSp','q1pwrnWsGA'].join(''), entries: [] };
+  store = { apiKey: ['AIzaSy', 'BKo7Mu', '22hqa5tI', '8lV2Y-eSp', 'q1pwrnWsGA'].join(''), entries: [] };
   switchScreen('screen-home');
   showAuthOverlay();
   renderWelcomeScreen();
@@ -1376,7 +1442,7 @@ const AVATAR_PRESET_COLORS = [
   { bg: '#10B981', initials: true },
 ];
 
-window.openAvatarPicker = function() {
+window.openAvatarPicker = function () {
   const user = getCurrentUser();
   if (!user) return;
   // Populate initials presets
@@ -1395,20 +1461,20 @@ window.openAvatarPicker = function() {
   modal.classList.add('flex');
 }
 
-window.closeAvatarPicker = function() {
+window.closeAvatarPicker = function () {
   const modal = document.getElementById('avatar-picker-modal');
   modal.classList.add('hidden');
   modal.classList.remove('flex');
 }
 
-window.handleAvatarFileUpload = function(event) {
+window.handleAvatarFileUpload = function (event) {
   const file = event.target.files?.[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) { alert('Please select an image file.'); return; }
   // Limit to ~2 MB to avoid localStorage bloat
   if (file.size > 2 * 1024 * 1024) { alert('Image too large. Please pick one under 2 MB.'); return; }
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = function (e) {
     const base64 = e.target.result;
     const user = getCurrentUser();
     if (user) { user.avatar = base64; saveAuthStore(); }
@@ -1419,7 +1485,7 @@ window.handleAvatarFileUpload = function(event) {
   event.target.value = '';
 }
 
-window.applyAvatarColor = function(color) {
+window.applyAvatarColor = function (color) {
   const user = getCurrentUser();
   if (user) {
     user.avatar = '';
@@ -1517,12 +1583,12 @@ async function callActualGemini(userPrompt) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: userPrompt })
     });
-    
+
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.error || 'API Request Failed');
     }
-    
+
     return data.text;
   } catch (error) {
     console.error('Gemini API Error:', error);

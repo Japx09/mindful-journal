@@ -227,6 +227,32 @@
       </div>
     </div>
 
+    <!-- Explore Add Inspiration Modal -->
+    <div id="explore-add-modal" class="fixed inset-0 z-[400] bg-black/50 backdrop-blur-sm hidden flex-col justify-end">
+      <div class="bg-white w-full rounded-t-[32px] p-6 pb-10 shadow-2xl animate-[slideUp_0.3s_ease-out]">
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-xl font-bold mb-2 text-brand-dark">Add Inspiration</h3>
+        <p class="text-sm text-brand-lightText mb-5">Upload a photo or paste a URL to add to your personal Discover feed.</p>
+
+        <div class="flex gap-2 mb-4">
+          <input type="text" id="explore-add-url" placeholder="Paste image URL or Base64..." class="flex-1 bg-brand-gray px-4 py-3 rounded-xl text-sm outline-none border border-transparent focus:border-brand-yellow transition-colors">
+          <input type="file" id="explore-add-file" accept="image/*" class="hidden" onchange="handleExploreFileUpload(event)">
+          <button onclick="document.getElementById('explore-add-file').click()" class="px-4 py-3 bg-brand-dark text-white font-bold rounded-xl text-sm hover:bg-black transition-colors" title="Upload from Device">
+            <i class="ri-upload-2-line text-lg"></i>
+          </button>
+        </div>
+        
+        <input type="text" id="explore-add-tags" placeholder="Tags (e.g. happy, sunset, sad)" class="w-full bg-brand-gray px-4 py-3 rounded-xl text-sm outline-none border border-transparent focus:border-brand-yellow transition-colors mb-5">
+
+        <button onclick="saveExploreInspiration()" class="w-full py-3 bg-brand-yellow text-white font-bold rounded-xl text-sm mb-3 shadow-md hover:scale-[1.02] transition-transform">
+          Add to Feed
+        </button>
+        <button onclick="closeExploreAddModal()" class="w-full py-3 bg-brand-gray text-brand-dark rounded-xl font-semibold text-sm hover:bg-gray-200 transition-colors">
+          Cancel
+        </button>
+      </div>
+    </div>
+
     <!-- Gemini AI Modal -->
     <div id="ai-modal" class="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm hidden flex-col justify-end">
       <div class="bg-white w-full rounded-t-[32px] p-4 sm:p-6 pb-12 transform translate-y-full transition-transform duration-300 shadow-2xl" id="ai-modal-content">
