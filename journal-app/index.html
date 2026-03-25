@@ -39,6 +39,19 @@
   </script>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+    <style>
+      .hide-scrollbar::-webkit-scrollbar { display: none; }
+      .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      
+      @keyframes bookFlipNext {
+        0% { transform: perspective(2000px) rotateY(0deg); opacity: 1; transform-origin: left; }
+        100% { transform: perspective(2000px) rotateY(-90deg); opacity: 0; transform-origin: left; }
+      }
+      @keyframes bookFlipPrev {
+        0% { transform: perspective(2000px) rotateY(0deg); opacity: 1; transform-origin: right; }
+        100% { transform: perspective(2000px) rotateY(90deg); opacity: 0; transform-origin: right; }
+      }
+    </style>
 </head>
 <body class="bg-brand-gray text-brand-text font-sans antialiased sm:flex sm:justify-center sm:items-center sm:h-screen sm:bg-gray-200">
   <!-- Mobile Emulator Container for Desktop -->
@@ -250,6 +263,61 @@
         <button onclick="closeExploreAddModal()" class="w-full py-3 bg-brand-gray text-brand-dark rounded-xl font-semibold text-sm hover:bg-gray-200 transition-colors">
           Cancel
         </button>
+      </div>
+    </div>
+
+    <!-- Premium Light Book Actions Overlay Modal -->
+    <div id="book-actions-modal" class="fixed inset-0 z-[500] bg-brand-light/95 backdrop-blur-md hidden flex-col items-center justify-center p-6 opacity-0 transition-opacity duration-300">
+      
+      <!-- Top Text & Back -->
+      <div class="absolute top-14 left-0 right-0 text-center px-6 animate-[fadeIn_0.5s_ease-out]">
+        <button onclick="closeBookOptions()" class="mb-4 w-10 h-10 rounded-full bg-white border border-gray-200 text-brand-dark flex items-center justify-center hover:bg-gray-100 transition-all mx-auto shadow-sm">
+          <i class="ri-arrow-down-line text-lg"></i>
+        </button>
+        <h2 class="text-brand-dark font-serif text-2xl tracking-wide font-bold">Review your memory</h2>
+      </div>
+
+      <div class="w-full max-w-[320px] flex flex-col items-center animate-[slideUp_0.4s_ease-out] mt-10">
+        <!-- Enlarged VIP Book Preview -->
+        <div class="relative w-[230px] h-[320px] mb-12 shadow-[0_30px_60px_rgba(0,0,0,0.15),inset_0_2px_10px_rgba(255,255,255,0.8)] rounded-r-[20px] rounded-l-[4px] overflow-hidden bg-brand-gray group transform transition-transform duration-500 hover:scale-[1.02]">
+          <!-- Binding -->
+          <div class="absolute top-0 bottom-0 left-0 w-5 bg-gradient-to-r from-black/20 via-black/5 to-transparent z-20 mix-blend-multiply"></div>
+          <div class="absolute top-0 bottom-0 left-[16px] w-[1px] bg-white/60 z-20"></div>
+          <div class="absolute top-0 bottom-0 left-[18px] w-[1px] bg-black/10 z-20"></div>
+          <!-- Cover -->
+          <img id="action-book-cover" src="" class="absolute inset-0 w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30 pointer-events-none z-10 block"></div>
+          <!-- Data -->
+          <div class="absolute inset-0 z-20 p-5 pt-6 flex flex-col justify-between">
+            <div class="flex justify-end">
+              <span id="action-book-emotion" class="inline-flex items-center px-2 py-1 bg-white/40 backdrop-blur-md rounded-[6px] text-[10px] text-brand-dark font-bold tracking-widest uppercase border border-white/60 shadow-md"></span>
+            </div>
+            <div class="mt-auto text-center flex flex-col items-center">
+              <h3 id="action-book-title" class="font-serif font-bold text-2xl leading-[1.15] mb-2 text-white drop-shadow-lg" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 2px 5px rgba(0,0,0,0.8);"></h3>
+              <p id="action-book-date" class="text-[9px] text-white font-bold tracking-widest font-sans uppercase drop-shadow-md"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sleek Segmented Action Pill -->
+        <div class="w-full bg-white/80 backdrop-blur-xl rounded-[32px] p-1.5 border border-white shadow-xl flex justify-between gap-1 relative overflow-hidden">
+          <button onclick="actionReadBook()" class="flex-1 py-3.5 text-brand-dark font-bold rounded-[28px] flex flex-col items-center justify-center gap-1 hover:bg-white transition-colors text-xs shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+            <i class="ri-book-open-fill text-xl mb-0.5"></i> Read
+          </button>
+          
+          <div class="w-[1px] my-2 bg-gray-200"></div>
+          
+          <button onclick="actionEditBook()" class="flex-1 py-3.5 text-brand-dark/60 font-semibold rounded-[28px] flex flex-col items-center justify-center gap-1 hover:bg-white hover:text-brand-dark transition-colors text-xs">
+            <i class="ri-pencil-fill text-xl mb-0.5"></i> Edit
+          </button>
+          
+          <div class="w-[1px] my-2 bg-gray-200"></div>
+          
+          <button onclick="actionDeleteBook()" class="flex-1 py-3.5 text-red-400 font-semibold rounded-[28px] flex flex-col items-center justify-center gap-1 hover:bg-red-50 hover:text-red-500 transition-colors text-xs">
+            <i class="ri-delete-bin-fill text-xl mb-0.5"></i> Delete
+          </button>
+        </div>
+        
       </div>
     </div>
 

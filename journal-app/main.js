@@ -224,6 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let store = { apiKey: ['AIzaSy', 'BKo7Mu', '22hqa5tI', '8lV2Y-eSp', 'q1pwrnWsGA'].join(''), entries: [] };
 let activeEntryId = null;
+let activePageIndex = 0;
 let homeSelectedDate = new Date().toDateString();
 let isEditing = false;
 const DEFAULT_COVER = 'https://i.pinimg.com/1200x/4b/61/93/4b6193893b5e78852385512422b9fa9e.jpg';
@@ -247,6 +248,19 @@ function initStore() {
     try {
       store = JSON.parse(saved);
       if (!store.entries || !Array.isArray(store.entries)) store.entries = [];
+      
+      // Migrate flat entries to multi-page format dynamically
+      store.entries.forEach(book => {
+        if (!book.pages) {
+          book.pages = [{
+            id: book.id + '_p1',
+            date: book.date,
+            content: book.content || ''
+          }];
+          delete book.content;
+        }
+      });
+      
       if (!store.exploreImages || !Array.isArray(store.exploreImages) || store.exploreImages.length === 0) store.exploreImages = defaultExploreImgs;
       store.apiKey = hardcodedKey;
     } catch (e) { console.error('Error parsing store', e); }
@@ -254,14 +268,18 @@ function initStore() {
     store.apiKey = hardcodedKey;
     store.entries = [];
     store.exploreImages = defaultExploreImgs;
-    const welcome = {
+      const welcome = {
       id: Date.now().toString(),
       title: "Morning Reflection",
-      content: "<p>I woke up to the soft light filtering through my window, and for the first time in a while, I didn't rush to check my phone.</p><p><br></p><p>The warmth of my morning tea feeling <strong>deeply grounding</strong>. A moment of pure <em>gratitude</em>.</p>",
       date: new Date().toISOString(),
       emotion: "Happy",
       tags: ["Personal", "Calm"],
-      coverImage: DEFAULT_COVER
+      coverImage: DEFAULT_COVER,
+      pages: [{
+        id: Date.now().toString() + '_p1',
+        date: new Date().toISOString(),
+        content: "<p>I woke up to the soft light filtering through my window, and for the first time in a while, I didn't rush to check my phone.</p><p><br></p><p>The warmth of my morning tea feeling <strong>deeply grounding</strong>. A moment of pure <em>gratitude</em>.</p>"
+      }]
     };
     store.entries.push(welcome);
     saveStore();
@@ -665,7 +683,7 @@ function renderHomeScreen() {
 
   if (latestEntries.length > 0) {
     mainCardsHtml = latestEntries.map(entry => `
-      <div class="relative min-w-[220px] w-[220px] h-[310px] snap-center cursor-pointer group shrink-0 mb-4 mt-2" onclick="viewEntry('${entry.id}')">
+      <div class="relative min-w-[220px] w-[220px] h-[310px] snap-center cursor-pointer group shrink-0 mb-4 mt-2" onclick="openBookOptions('${entry.id}')">
         <div class="absolute top-6 bottom-4 -right-4 w-10 bg-black/15 rounded-r-3xl blur-lg group-hover:-right-6 transition-all duration-500"></div>
         <div class="relative w-full h-full rounded-r-2xl rounded-l-[4px] overflow-hidden shadow-[2px_0_15px_rgba(0,0,0,0.05),inset_2px_0_6px_rgba(255,255,255,0.4)] group-hover:-translate-y-3 group-hover:shadow-[10px_10px_30px_rgba(0,0,0,0.15)] transition-all duration-500 bg-brand-gray">
           <div class="absolute top-0 bottom-0 left-0 w-4 bg-gradient-to-r from-black/50 via-black/10 to-transparent z-20 mix-blend-multiply"></div>
@@ -715,7 +733,7 @@ function renderHomeScreen() {
   if (Object.keys(genreMap).length > 0) {
     for (const [genre, entries] of Object.entries(genreMap)) {
       const booksHtml = entries.map(q => `
-        <div onclick="viewEntry('${q.id}')" class="relative min-w-[130px] w-[130px] h-[180px] snap-start cursor-pointer group mb-4 mt-2">
+        <div onclick="openBookOptions('${q.id}')" class="relative min-w-[130px] w-[130px] h-[180px] snap-start cursor-pointer group mb-4 mt-2">
           <div class="absolute top-4 bottom-2 -right-3 w-6 bg-black/15 rounded-r-2xl blur-md group-hover:-right-4 transition-all duration-300"></div>
           <div class="relative w-full h-full rounded-r-xl rounded-l-[3px] overflow-hidden shadow-[2px_0_10px_rgba(0,0,0,0.05),inset_2px_0_4px_rgba(255,255,255,0.4)] group-hover:-translate-y-2 group-hover:shadow-[7px_7px_20px_rgba(0,0,0,0.15)] transition-all duration-300 bg-brand-gray">
             <div class="absolute top-0 bottom-0 left-0 w-2.5 bg-gradient-to-r from-black/40 via-black/10 to-transparent z-20 mix-blend-multiply"></div>
@@ -781,9 +799,76 @@ function renderHomeScreen() {
     </div>`;
 }
 
-// =================== DETAIL & EDIT ===================
+// =================== DETAIL & EDIT & BOOK OVERLAY ===================
+
+window.openBookOptions = function(id) {
+  activeEntryId = id;
+  const entry = store.entries.find(e => e.id === id);
+  if (!entry) return;
+
+  document.getElementById('action-book-cover').src = entry.coverImage || DEFAULT_COVER;
+  document.getElementById('action-book-emotion').innerText = entry.emotion || 'Journal';
+  document.getElementById('action-book-title').innerText = entry.title;
+  document.getElementById('action-book-date').innerText = new Date(entry.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+
+  const modal = document.getElementById('book-actions-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  setTimeout(() => modal.classList.remove('opacity-0'), 10);
+}
+
+window.closeBookOptions = function() {
+  const modal = document.getElementById('book-actions-modal');
+  modal.classList.add('opacity-0');
+  setTimeout(() => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }, 300);
+}
+
+window.tryRequestFullscreen = function() {
+  try {
+    const el = document.documentElement;
+    if (el.requestFullscreen) { el.requestFullscreen(); }
+    else if (el.webkitRequestFullscreen) { el.webkitRequestFullscreen(); } // Safari
+    else if (el.msRequestFullscreen) { el.msRequestFullscreen(); } // IE11
+  } catch(e) {}
+}
+
+window.tryExitFullscreen = function() {
+  try {
+    if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+      if (document.exitFullscreen) { document.exitFullscreen(); }
+      else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+      else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+    }
+  } catch(e) {}
+}
+
+window.actionReadBook = function() {
+  tryRequestFullscreen();
+  closeBookOptions();
+  window.viewEntry(activeEntryId);
+}
+
+window.actionEditBook = function() {
+  tryRequestFullscreen();
+  closeBookOptions();
+  isEditing = true;
+  switchScreen('screen-detail');
+}
+
+window.actionDeleteBook = async function() {
+  if (confirm("Are you sure you want to completely delete this book? This action cannot be undone.")) {
+    closeBookOptions();
+    await deleteEntry(activeEntryId);
+    saveStore(); // Backup to local storage in case backend sync fails
+    renderHomeScreen();
+  }
+}
 
 window.viewEntry = function (id) {
+  tryRequestFullscreen();
   activeEntryId = id;
   isEditing = false;
   switchScreen('screen-detail');
@@ -795,175 +880,233 @@ window.toggleEdit = function () {
 }
 
 window.saveEdit = function () {
-  const entry = store.entries.find(e => e.id === activeEntryId);
-  if (!entry) return;
+  const book = store.entries.find(e => e.id === activeEntryId);
+  if (!book) return;
 
-  const newTitle = document.getElementById('edit-title')?.value.trim();
-  const newEmotion = document.getElementById('edit-emotion')?.value;
   const rte = document.getElementById('edit-rte');
-  const newContent = rte ? rte.innerHTML : entry.content;
+  const newContent = rte ? rte.innerHTML : '';
+  
+  const titleInput = document.getElementById('edit-title');
+  if (titleInput && titleInput.value.trim() !== '') {
+    book.title = titleInput.value.trim();
+  }
 
-  if (!newTitle) { alert("Title cannot be empty."); return; }
-
-  entry.title = newTitle;
-  entry.content = newContent;
-  entry.emotion = newEmotion;
+  const emotionSelect = document.getElementById('edit-emotion');
+  if (emotionSelect) {
+    book.emotion = emotionSelect.value;
+  }
+  
+  if (activePageIndex >= 0 && activePageIndex < book.pages.length) {
+    book.pages[activePageIndex].content = newContent;
+  }
+  
   saveStore();
   isEditing = false;
   renderDetailScreen();
 }
 
-// Image picker helpers
-window.openImgPicker = function () {
-  const modal = document.getElementById('img-picker-modal');
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
+window.flipPage = function(direction) {
+  const container = document.getElementById('screen-detail');
+  const book = store.entries.find(e => e.id === activeEntryId);
+  if (!book || !container) return;
+
+  if (direction === 'next' && activePageIndex < book.pages.length - 1) {
+    container.classList.add('animate-[fadeOut_0.2s_ease-out_forwards]');
+    setTimeout(() => {
+      activePageIndex++;
+      renderDetailScreen();
+      const newContainer = document.getElementById('screen-detail');
+      newContainer.classList.remove('animate-[fadeOut_0.2s_ease-out_forwards]');
+      newContainer.classList.add('animate-[fadeIn_0.2s_ease-in_forwards]');
+    }, 200);
+  } else if (direction === 'prev' && activePageIndex > 0) {
+    container.classList.add('animate-[fadeOut_0.2s_ease-out_forwards]');
+    setTimeout(() => {
+      activePageIndex--;
+      renderDetailScreen();
+      const newContainer = document.getElementById('screen-detail');
+      newContainer.classList.remove('animate-[fadeOut_0.2s_ease-out_forwards]');
+      newContainer.classList.add('animate-[fadeIn_0.2s_ease-in_forwards]');
+    }, 200);
+  }
 }
 
-window.closeImgPicker = function () {
-  const modal = document.getElementById('img-picker-modal');
-  modal.classList.add('hidden');
-  modal.classList.remove('flex');
+window.writeNewPage = function() {
+  const book = store.entries.find(e => e.id === activeEntryId);
+  if (!book) return;
+  book.pages.push({
+    id: Date.now().toString(),
+    date: new Date().toISOString(),
+    content: ''
+  });
+  activePageIndex = book.pages.length - 1;
+  isEditing = true;
+  renderDetailScreen();
 }
 
-window.applyPresetImage = function (src) {
-  if (activeEntryId) {
-    const entry = store.entries.find(e => e.id === activeEntryId);
-    if (entry) { entry.coverImage = src; saveStore(); }
-    const coverEl = document.getElementById('detail-cover');
-    if (coverEl) coverEl.src = src;
-  } else {
-    _createCoverImage = src;
-    const createCoverEl = document.getElementById('create-cover');
-    const containerEl = document.getElementById('create-cover-container');
-    const btnEl = document.getElementById('create-cover-btn');
-    if (createCoverEl && containerEl) {
-      createCoverEl.src = src;
-      containerEl.classList.remove('hidden');
-      if (btnEl) btnEl.classList.add('hidden');
+window.toggleActionMenu = function() {
+  const menu = document.getElementById('detail-action-menu');
+  if (menu) {
+    if (menu.classList.contains('hidden')) {
+      menu.classList.remove('hidden');
+      menu.classList.add('flex');
+    } else {
+      menu.classList.add('hidden');
+      menu.classList.remove('flex');
     }
   }
-  closeImgPicker();
-}
-
-window.applyCustomImageUrl = function () {
-  const input = document.getElementById('img-url-input');
-  const url = input?.value.trim();
-  if (!url) { alert('Please enter a valid URL.'); return; }
-  applyPresetImage(url);
-}
-
-window.handleCoverFileUpload = function (event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  if (!file.type.startsWith('image/')) { alert('Please select an image file.'); return; }
-  // Compressing or limiting large files is vital for localStorage limits (~5MB total)
-  if (file.size > 2 * 1024 * 1024) { alert('Image too large. Please pick one under 2 MB to avoid running out of storage space.'); return; }
-
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    applyPresetImage(e.target.result); // Reuse the same logic to set image
-  };
-  reader.readAsDataURL(file);
-  event.target.value = ''; // Reset input
 }
 
 function renderDetailScreen() {
   const container = document.getElementById('screen-detail');
-  const entry = store.entries.find(e => e.id === activeEntryId);
-  if (!entry) {
-    container.innerHTML = `<div class="p-6 pt-20 text-center"><p>Entry not found.</p><button onclick="switchScreen('screen-home')" class="mt-4 text-brand-orange font-bold">Go Back</button></div>`;
+  const book = store.entries.find(e => e.id === activeEntryId);
+  
+  if (!book) {
+    container.innerHTML = `<div class="p-6 pt-20 text-center"><p>Book not found.</p><button onclick="tryExitFullscreen(); switchScreen('screen-home')" class="mt-4 text-brand-orange font-bold">Go Back</button></div>`;
     return;
   }
 
-  const coverImg = entry.coverImage || DEFAULT_COVER;
-  const d = new Date(entry.date);
+  // Ensure activePageIndex is valid
+  if (activePageIndex < 0) activePageIndex = 0;
+  if (!book.pages) {
+    book.pages = [{ id: Date.now().toString(), date: book.date, content: '' }];
+  }
+  if (book.pages.length === 0) {
+    book.pages.push({ id: Date.now().toString(), date: new Date().toISOString(), content: '' });
+  }
+  if (activePageIndex >= book.pages.length) activePageIndex = book.pages.length - 1;
+  
+  const page = book.pages[activePageIndex];
+  const d = new Date(page.date);
+  const totalPages = book.pages.length;
 
   if (isEditing) {
-    container.innerHTML = `
-      <div class="flex justify-between items-center mb-6 pt-2">
-        <button onclick="toggleEdit()" class="w-10 h-10 bg-brand-gray rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
-          <i class="ri-close-line text-2xl"></i>
-        </button>
-        <span class="font-bold text-brand-dark">Edit Entry</span>
-        <button onclick="saveEdit()" class="px-4 h-10 bg-brand-yellow text-white rounded-full flex items-center gap-1 justify-center shadow-md font-bold text-sm hover:scale-105 transition-transform">
-          <i class="ri-check-line"></i> Save
-        </button>
+    container.innerHTML = `<div class="fixed inset-0 z-[100] bg-white overflow-y-auto pb-6 pt-0 flex flex-col items-center">
+      <div class="w-full max-w-2xl flex flex-col min-h-full">
+        
+        <!-- Notion-Style Cover Header -->
+        <div class="w-full h-[180px] sm:h-[220px] relative mb-6 group cursor-pointer" onclick="openImgPicker()">
+          <img id="detail-cover" src="${book.coverImage || DEFAULT_COVER}" class="w-full h-full object-cover rounded-b-[24px] sm:rounded-b-[32px] shadow-sm">
+          <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity backdrop-blur-sm rounded-b-[24px] sm:rounded-b-[32px]">
+            <i class="ri-image-edit-fill text-3xl mb-1"></i>
+            <span class="text-sm font-bold tracking-wider">CHANGE COVER</span>
+          </div>
+          
+          <!-- Header Actions Floating -->
+          <div class="absolute top-6 left-5 right-5 flex justify-between items-center z-20">
+            <button onclick="toggleEdit()" class="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/20 flex items-center justify-center hover:bg-black/50 transition-colors shadow-sm">
+              <i class="ri-close-line text-2xl"></i>
+            </button>
+            <button onclick="saveEdit()" class="px-5 h-10 bg-brand-yellow text-brand-dark rounded-full font-bold shadow-lg hover:scale-105 transition-transform flex items-center gap-1 border border-yellow-400">
+              <i class="ri-check-line"></i> Save
+            </button>
+          </div>
+        </div>
+
+        <div class="px-5 sm:px-6 flex flex-col flex-1 w-full relative z-30">
+          <!-- Text Align Left -->
+          <div class="text-left mb-3">
+            <p class="text-brand-orange font-medium text-sm tracking-wide">${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+          </div>
+
+          <input type="text" id="edit-title" value="${book.title}" placeholder="Book Title" class="w-full text-left text-[28px] sm:text-[34px] font-extrabold text-brand-dark mb-4 leading-tight tracking-tight outline-none border-b border-dashed border-gray-200 pb-2 bg-transparent">
+          
+          <div class="flex justify-start mb-6">
+            <select id="edit-emotion" class="bg-brand-orange/10 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-brand-orange outline-none shadow-sm cursor-pointer border border-transparent focus:border-brand-yellow transition-colors">
+              <option value="Happy" ${book.emotion === 'Happy' ? 'selected' : ''}>😊 Happy</option>
+              <option value="Calm" ${book.emotion === 'Calm' ? 'selected' : ''}>😌 Calm</option>
+              <option value="Anxious" ${book.emotion === 'Anxious' ? 'selected' : ''}>😰 Anxious</option>
+              <option value="Sad" ${book.emotion === 'Sad' ? 'selected' : ''}>😔 Sad</option>
+            </select>
+          </div>
+
+          <div class="w-full relative z-10 bg-gray-50 rounded-xl p-2 border border-gray-100 shadow-sm text-left mb-6">
+            ${buildToolbar('edit-rte')}
+          </div>
+
+          <div class="flex-1 w-full pb-4">
+            <div id="edit-rte" class="prose prose-sm font-sans text-brand-text leading-[1.8] text-[16px] sm:text-[18px] w-full outline-none min-h-[300px]"></div>
+          </div>
+        </div>
+
       </div>
+    </div>`;
 
-      <!-- Editable Cover -->
-      <div class="editable-cover w-full h-48 rounded-3xl overflow-hidden mb-4 shadow-md" onclick="openImgPicker()">
-        <img id="detail-cover" src="${coverImg}" class="w-full h-full object-cover">
-        <div class="cover-edit-overlay"><span><i class="ri-image-edit-line text-lg"></i> Change Photo</span></div>
-      </div>
-
-      <p class="text-brand-orange font-medium text-sm mb-2 text-center">${d.toLocaleDateString()}</p>
-      <input type="text" id="edit-title" value="${entry.title}" class="w-full text-2xl font-bold bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none mb-3 text-center text-brand-dark focus:border-brand-yellow transition-colors">
-      
-      <div class="flex justify-center mb-4">
-        <select id="edit-emotion" class="bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold text-brand-orange outline-none shadow-sm focus:border-brand-yellow transition-colors cursor-pointer">
-          <option value="Happy" ${entry.emotion === 'Happy' ? 'selected' : ''}>😊 Happy</option>
-          <option value="Calm" ${entry.emotion === 'Calm' ? 'selected' : ''}>😌 Calm</option>
-          <option value="Anxious" ${entry.emotion === 'Anxious' ? 'selected' : ''}>😰 Anxious</option>
-          <option value="Sad" ${entry.emotion === 'Sad' ? 'selected' : ''}>😔 Sad</option>
-        </select>
-      </div>
-
-      ${buildToolbar('edit-rte')}
-      <div class="pb-20"></div>
-    `;
-
-    // Load existing content into RTE
     const rte = document.getElementById('edit-rte');
-    if (rte) rte.innerHTML = entry.content || '';
-    // Wire up AI selection popup
+    if (rte) rte.innerHTML = page.content || '';
     attachRteSelectionListeners('edit-rte');
     return;
   }
 
   // View mode
-  const tagsHtml = (entry.tags || []).map(t => `<span class="px-4 py-1.5 bg-brand-gray rounded-full text-xs font-medium text-brand-text/70 shadow-sm border border-gray-100">${t}</span>`).join('');
-
-  container.innerHTML = `
-    <div class="flex justify-between items-center mb-6 pt-2">
-      <button onclick="switchScreen('screen-home')" class="w-10 h-10 bg-brand-gray rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
-        <i class="ri-arrow-left-s-line text-2xl"></i>
-      </button>
-      <div class="w-10 h-10"></div>
-    </div>
-
-    <div class="text-center mb-6">
-      <p class="text-brand-orange font-medium text-sm mb-1">${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
-      <h1 class="text-3xl font-bold text-brand-dark mb-4 drop-shadow-sm">${entry.title}</h1>
-      <div class="flex justify-center flex-wrap gap-2">
-        <span class="px-4 py-1.5 bg-brand-yellow/20 text-brand-orange rounded-full text-xs font-bold shadow-sm">${entry.emotion}</span>
-        ${tagsHtml}
+  container.innerHTML = `<div class="fixed inset-0 z-[100] bg-white overflow-y-auto pb-6 pt-0 flex flex-col items-center">
+    <div class="w-full max-w-2xl flex flex-col min-h-[100vh]">
+      
+      <!-- Notion-Style Cover Header -->
+      <div class="w-full h-[180px] sm:h-[220px] relative mb-8">
+        <img src="${book.coverImage || DEFAULT_COVER}" class="w-full h-full object-cover rounded-b-[24px] sm:rounded-b-[32px] shadow-sm">
+        <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent pointer-events-none rounded-b-[24px] sm:rounded-b-[32px]"></div>
+        
+        <!-- Header Controls Floating over Cover -->
+        <div class="absolute top-6 left-5 right-5 flex justify-between items-center z-50">
+          <button onclick="tryExitFullscreen(); switchScreen('screen-home')" class="w-10 h-10 rounded-full bg-white/30 backdrop-blur-md text-white border border-white/20 flex items-center justify-center hover:bg-white/50 transition-colors shadow-sm">
+            <i class="ri-arrow-left-s-line text-2xl"></i>
+          </button>
+          
+          <div class="relative">
+            <button onclick="toggleActionMenu()" class="w-10 h-10 rounded-full bg-white/30 backdrop-blur-md text-white border border-white/20 flex items-center justify-center hover:bg-white/50 transition-colors shadow-sm">
+              <i class="ri-more-2-line text-xl"></i>
+            </button>
+            
+            <!-- 3-Dot Dropdown Menu -->
+            <div id="detail-action-menu" class="absolute right-0 top-12 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-gray-100 p-2 w-48 hidden flex-col gap-1 origin-top-right animate-[fadeIn_0.2s_ease-out]">
+              <button onclick="toggleEdit()" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-left text-sm font-bold text-brand-dark transition-colors">
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-brand-dark"><i class="ri-pencil-fill"></i></div> Edit Page
+              </button>
+              <button onclick="enhanceEntryWithGemini('${book.id}')" class="flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 text-left text-sm font-bold text-purple-600 transition-colors">
+                <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600"><i class="ri-sparkling-fill"></i></div> Ask AI
+              </button>
+              <div class="border-t border-gray-100 my-1 mx-2"></div>
+              <button onclick="deleteEntry('${book.id}')" class="flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-left text-sm font-bold text-red-500 transition-colors">
+                <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500"><i class="ri-delete-bin-fill"></i></div> Delete Book
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Editable Cover (view mode) -->
-    <div class="editable-cover w-full h-48 rounded-3xl overflow-hidden mb-6 shadow-md" onclick="openImgPicker()">
-      <img id="detail-cover" src="${coverImg}" class="w-full h-full object-cover">
-      <div class="cover-edit-overlay"><span><i class="ri-image-edit-line text-lg"></i> Change Photo</span></div>
-    </div>
+      <div class="px-5 sm:px-6 flex flex-col flex-1 w-full relative z-30">
+        <!-- Title Block -->
+        <div class="text-left mb-6">
+          <p class="text-brand-orange font-bold text-sm mb-2 tracking-wide">${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+          <h1 class="text-[28px] sm:text-[34px] font-extrabold text-brand-dark mb-4 leading-tight tracking-tight">${book.title}</h1>
+          <div class="flex justify-start">
+            <span class="px-4 py-1.5 bg-brand-orange/10 text-brand-orange rounded-full text-xs font-bold uppercase tracking-wider">${book.emotion}</span>
+          </div>
+        </div>
 
-    <div class="rte-content prose prose-sm mb-24 px-1">${entry.content}</div>
+        <!-- Content Body -->
+        <div class="prose prose-sm font-sans text-brand-text leading-[1.8] text-[16px] sm:text-[18px] w-full mb-10 px-1 max-w-none">
+          ${page.content || '<p class="italic opacity-50 text-left">No entry written for this page.</p>'}
+        </div>
 
-    <!-- Floating Actions -->
-    <div class="fixed bottom-24 left-0 w-full flex justify-center gap-4 px-6 pointer-events-none">
-      <div class="flex gap-4 bg-white/80 backdrop-blur-md p-2 rounded-full shadow-lg pointer-events-auto border border-white/50">
-        <button onclick="toggleEdit()" class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center text-brand-dark hover:bg-gray-200 transition shadow-sm border border-gray-200" title="Edit Entry">
-          <i class="ri-pencil-line text-xl"></i>
-        </button>
-        <button onclick="deleteEntry('${entry.id}')" class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-red-500 hover:bg-red-100 transition shadow-sm border border-red-100" title="Delete Entry">
-          <i class="ri-delete-bin-line text-xl"></i>
-        </button>
-        <button onclick="enhanceEntryWithGemini('${entry.id}')" class="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-purple-600 hover:bg-purple-100 transition shadow-sm border border-purple-200" title="Analyze with Gemini AI">
-          <i class="ri-sparkling-fill text-xl"></i>
-        </button>
+        <!-- Bottom Pagination Action Bar -->
+        <div class="flex justify-between items-center w-full mt-auto pt-6 border-t border-gray-100/80">
+          <button onclick="flipPage('prev')" class="font-bold text-gray-400 hover:text-brand-dark transition-colors px-2 py-2 uppercase tracking-widest text-[11px] flex items-center gap-1 group/btn ${activePageIndex === 0 ? 'invisible pointer-events-none' : ''}">
+            <i class="ri-arrow-left-s-line text-lg group-hover/btn:-translate-x-1 transition-transform"></i> Prev
+          </button>
+          
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-full">Page ${activePageIndex + 1} of ${totalPages}</span>
+          
+          ${activePageIndex === totalPages - 1 
+            ? `<button onclick="writeNewPage()" class="font-bold text-brand-orange hover:text-orange-600 transition-colors px-2 py-2 flex items-center gap-1 uppercase tracking-widest text-[11px] group/btn">Write <i class="ri-add-line text-lg group-hover/btn:rotate-90 transition-transform"></i></button>`
+            : `<button onclick="flipPage('next')" class="font-bold text-gray-400 hover:text-brand-dark transition-colors px-2 py-2 flex items-center gap-1 uppercase tracking-widest text-[11px] group/btn">Next <i class="ri-arrow-right-s-line text-lg group-hover/btn:translate-x-1 transition-transform"></i></button>`
+          }
+        </div>
       </div>
+
     </div>
-  `;
+  </div>`;
 }
 
 window.deleteEntry = function (id) {
@@ -1041,11 +1184,15 @@ window.saveNewEntry = function () {
   store.entries.push({
     id: Date.now().toString(),
     title,
-    content,
     emotion: emotion || 'Happy',
     tags,
     date: new Date().toISOString(),
-    coverImage: _createCoverImage || DEFAULT_COVER
+    coverImage: _createCoverImage || DEFAULT_COVER,
+    pages: [{
+      id: Date.now().toString() + '_p1',
+      date: new Date().toISOString(),
+      content
+    }]
   });
   saveStore();
   homeSelectedDate = new Date().toDateString();
