@@ -340,11 +340,26 @@ window.switchScreen = function (screenId) {
 
   document.querySelectorAll('.screen-view').forEach(screen => {
     screen.classList.remove('active');
+    screen.classList.add('hidden');
   });
-  
+
+  const bottomNav = document.getElementById('bottom-nav');
+  if (bottomNav) {
+    if (screenId === 'screen-detail') {
+      bottomNav.classList.add('hidden');
+      bottomNav.classList.remove('flex');
+    } else {
+      bottomNav.classList.remove('hidden');
+      bottomNav.classList.add('flex');
+    }
+  }
+
   const target = document.getElementById(screenId);
   if (target) {
+    target.classList.remove('hidden');
     target.classList.add('active');
+    
+    document.getElementById('screens-container').scrollTop = 0;
     
     // Sync Navigation Bar UI
     const navItems = document.querySelectorAll('.nav-item');
@@ -358,7 +373,7 @@ window.switchScreen = function (screenId) {
     });
 
     if (screenId === 'screen-home') renderHomeScreen();
-    if (screenId === 'screen-detail') { isEditing = false; renderDetailScreen(); }
+    if (screenId === 'screen-detail') renderDetailScreen();
     if (screenId === 'screen-create') renderCreateScreen();
     if (screenId === 'screen-stats') renderStatsScreen();
     if (screenId === 'screen-profile') renderProfileScreen();
@@ -981,8 +996,8 @@ function renderDetailScreen() {
   const totalPages = book.pages.length;
 
   if (isEditing) {
-    container.innerHTML = `<div class="fixed inset-0 z-[100] bg-white overflow-y-auto pb-6 pt-0 flex flex-col items-center">
-      <div class="w-full max-w-2xl flex flex-col min-h-full">
+    container.innerHTML = `<div class="absolute inset-0 z-10 bg-white overflow-y-auto pb-6 flex flex-col items-center min-h-[100vh]">
+      <div class="w-full max-w-2xl flex flex-col min-h-[100vh]">
         
         <!-- Notion-Style Cover Header -->
         <div class="w-full h-[180px] sm:h-[220px] relative mb-6 group cursor-pointer" onclick="openImgPicker()">
@@ -994,11 +1009,11 @@ function renderDetailScreen() {
           
           <!-- Header Actions Floating -->
           <div class="absolute top-6 left-5 right-5 flex justify-between items-center z-20">
-            <button onclick="toggleEdit()" class="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/20 flex items-center justify-center hover:bg-black/50 transition-colors shadow-sm">
-              <i class="ri-close-line text-2xl"></i>
+            <button onclick="toggleEdit()" class="w-10 h-10 rounded-full bg-[#113a4d] text-white border border-white/20 flex items-center justify-center hover:bg-[#0a2533] transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
+              <i class="ri-close-line text-[26px]"></i>
             </button>
-            <button onclick="saveEdit()" class="px-5 h-10 bg-brand-yellow text-brand-dark rounded-full font-bold shadow-lg hover:scale-105 transition-transform flex items-center gap-1 border border-yellow-400">
-              <i class="ri-check-line"></i> Save
+            <button onclick="saveEdit()" class="px-6 h-10 bg-[#ffb833] text-[#131313] rounded-full font-extrabold text-[15px] tracking-wide shadow-[0_4px_15px_rgba(255,184,51,0.4)] hover:scale-105 transition-transform flex items-center gap-1.5">
+              <i class="ri-check-line text-[22px] font-bold"></i> Save
             </button>
           </div>
         </div>
@@ -1039,7 +1054,7 @@ function renderDetailScreen() {
   }
 
   // View mode
-  container.innerHTML = `<div class="fixed inset-0 z-[100] bg-white overflow-y-auto pb-6 pt-0 flex flex-col items-center">
+  container.innerHTML = `<div class="absolute inset-0 z-10 bg-white overflow-y-auto pb-6 flex flex-col items-center min-h-[100vh]">
     <div class="w-full max-w-2xl flex flex-col min-h-[100vh]">
       
       <!-- Notion-Style Cover Header -->
@@ -1049,13 +1064,13 @@ function renderDetailScreen() {
         
         <!-- Header Controls Floating over Cover -->
         <div class="absolute top-6 left-5 right-5 flex justify-between items-center z-50">
-          <button onclick="tryExitFullscreen(); switchScreen('screen-home')" class="w-10 h-10 rounded-full bg-white/30 backdrop-blur-md text-white border border-white/20 flex items-center justify-center hover:bg-white/50 transition-colors shadow-sm">
-            <i class="ri-arrow-left-s-line text-2xl"></i>
+          <button onclick="tryExitFullscreen(); switchScreen('screen-home')" class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.15)] ring-1 ring-white/10">
+            <i class="ri-arrow-left-s-line text-[30px]"></i>
           </button>
           
           <div class="relative">
-            <button onclick="toggleActionMenu()" class="w-10 h-10 rounded-full bg-white/30 backdrop-blur-md text-white border border-white/20 flex items-center justify-center hover:bg-white/50 transition-colors shadow-sm">
-              <i class="ri-more-2-line text-xl"></i>
+            <button onclick="toggleActionMenu()" class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.15)] ring-1 ring-white/10">
+              <i class="ri-more-2-fill text-[24px]"></i>
             </button>
             
             <!-- 3-Dot Dropdown Menu -->
