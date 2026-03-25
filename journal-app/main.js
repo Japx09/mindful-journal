@@ -657,72 +657,100 @@ window.setHomeDate = function (dateStr) {
 
 function renderHomeScreen() {
   const container = document.getElementById('screen-home');
-  const today = new Date();
-  const calendarDays = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const dStr = d.toDateString();
-    calendarDays.push({
-      day: d.toLocaleDateString('en-US', { weekday: 'short' }),
-      date: d.getDate(),
-      fullDateStr: dStr,
-      active: dStr === homeSelectedDate
-    });
-  }
-
-  const calendarHtml = calendarDays.map(d => `
-    <div onclick="setHomeDate('${d.fullDateStr}')" class="flex flex-col items-center gap-1 sm:gap-2 min-w-[3rem] sm:min-w-[3.5rem] cursor-pointer hover:scale-105 transition-transform">
-      <span class="text-[10px] sm:text-xs ${d.active ? 'text-brand-orange font-bold' : 'text-brand-lightText font-medium'}">${d.day}</span>
-      <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-base sm:text-lg font-semibold transition-colors duration-300
-        ${d.active ? 'bg-brand-yellow text-white shadow-md' : 'bg-white text-brand-text shadow-sm'}">
-        ${d.date}
-      </div>
-    </div>
-  `).join('');
-
   const sortedEntries = [...store.entries].sort((a, b) => new Date(b.date) - new Date(a.date));
-  const mainCardEntry = sortedEntries[0] || null;
-  const selectedDateObj = new Date(homeSelectedDate);
-  const quickEntries = sortedEntries.filter(e => new Date(e.date).toDateString() === selectedDateObj.toDateString());
+  
+  // 1. Featured Latest Entries (Top 3)
+  const latestEntries = sortedEntries.slice(0, 3);
+  let mainCardsHtml = '';
 
-  let mainCardHtml = '';
-  if (mainCardEntry) {
-    mainCardHtml = `
-      <div class="min-w-[280px] bg-[#FACC50] rounded-[32px] p-4 sm:p-6 snap-center shadow-soft relative overflow-hidden cursor-pointer" onclick="viewEntry('${mainCardEntry.id}')">
-        <div class="absolute top-20 right-10 w-8 h-2 bg-white/40 rounded-full blur-[1px]"></div>
-        <div class="absolute top-24 left-10 w-12 h-2 bg-white/40 rounded-full blur-[1px]"></div>
-        <div class="relative z-10 text-center mb-8">
-          <h3 class="font-bold text-brand-dark text-lg whitespace-nowrap overflow-hidden text-ellipsis">${mainCardEntry.title}</h3>
-          <p class="text-brand-dark/80 text-sm mt-1">${new Date(mainCardEntry.date).toLocaleDateString()}</p>
+  if (latestEntries.length > 0) {
+    mainCardsHtml = latestEntries.map(entry => `
+      <div class="relative min-w-[220px] w-[220px] h-[310px] snap-center cursor-pointer group shrink-0 mb-4 mt-2" onclick="viewEntry('${entry.id}')">
+        <div class="absolute top-6 bottom-4 -right-4 w-10 bg-black/15 rounded-r-3xl blur-lg group-hover:-right-6 transition-all duration-500"></div>
+        <div class="relative w-full h-full rounded-r-2xl rounded-l-[4px] overflow-hidden shadow-[2px_0_15px_rgba(0,0,0,0.05),inset_2px_0_6px_rgba(255,255,255,0.4)] group-hover:-translate-y-3 group-hover:shadow-[10px_10px_30px_rgba(0,0,0,0.15)] transition-all duration-500 bg-brand-gray">
+          <div class="absolute top-0 bottom-0 left-0 w-4 bg-gradient-to-r from-black/50 via-black/10 to-transparent z-20 mix-blend-multiply"></div>
+          <div class="absolute top-0 bottom-0 left-[14px] w-[1px] bg-white/40 z-20"></div>
+          <div class="absolute top-0 bottom-0 left-[16px] w-[1px] bg-black/10 z-20"></div>
+          <img src="${entry.coverImage || DEFAULT_COVER}" class="absolute inset-0 w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/90 pointer-events-none z-10 transition-all duration-500 group-hover:to-black/100"></div>
+          <div class="absolute inset-0 z-20 p-5 pt-6 flex flex-col justify-between">
+            <div class="flex justify-between items-start">
+              <span class="inline-flex items-center px-2 py-0.5 bg-white/20 backdrop-blur-md rounded-sm text-[9px] text-white font-bold tracking-widest uppercase border border-white/20 shadow-sm">${entry.emotion || 'Journal'}</span>
+            </div>
+            <div class="mt-auto">
+              <h3 class="font-serif font-bold text-2xl leading-tight mb-1 text-white drop-shadow-xl" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 2px 5px rgba(0,0,0,0.8);">${entry.title}</h3>
+              <p class="text-[11px] text-white/80 font-bold tracking-widest font-sans uppercase">${new Date(entry.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+            </div>
+          </div>
         </div>
-        <div class="relative w-full h-32 flex justify-center items-end">
-           <div class="w-16 h-16 bg-[#FF8C38] rounded-full absolute bottom-4 flex justify-center items-center shadow-[0_0_30px_#FF8C38]">
-              <div class="flex gap-1 mb-2"><div class="w-1.5 h-1.5 bg-[#4A2511] rounded-full"></div><div class="w-1.5 h-1.5 bg-[#4A2511] rounded-full"></div></div>
-              <div class="absolute bottom-3 w-3 h-1.5 border-b-2 border-[#4A2511] rounded-full"></div>
-           </div>
-           <div class="absolute -bottom-8 -left-10 w-40 h-24 bg-[#6A944B] rounded-full blur-[1px]"></div>
-           <div class="absolute -bottom-6 -right-10 w-48 h-24 bg-[#80AD5C] rounded-full blur-[1px]"></div>
+      </div>
+    `).join('');
+  } else {
+    mainCardsHtml = `
+      <div class="relative min-w-[220px] w-[220px] h-[310px] snap-center cursor-pointer group shrink-0 mb-4 mt-2" onclick="switchScreen('screen-create')">
+        <div class="absolute top-6 bottom-4 -right-4 w-10 bg-black/10 rounded-r-3xl blur-lg group-hover:-right-6 transition-all duration-500"></div>
+        <div class="relative w-full h-full rounded-r-2xl rounded-l-[4px] overflow-hidden shadow-[2px_0_15px_rgba(0,0,0,0.02),inset_2px_0_6px_rgba(255,255,255,0.6)] group-hover:-translate-y-3 group-hover:shadow-[10px_10px_30px_rgba(0,0,0,0.1)] transition-all duration-500 bg-[#FACC50]">
+          <div class="absolute top-0 bottom-0 left-0 w-4 bg-gradient-to-r from-black/20 via-black/5 to-transparent z-20 mix-blend-multiply"></div>
+          <div class="absolute top-0 bottom-0 left-[14px] w-[1px] bg-white/60 z-20"></div>
+          <div class="absolute inset-0 z-20 p-6 flex flex-col items-center justify-center text-center">
+            <div class="w-14 h-14 rounded-full bg-white/40 backdrop-blur-md mb-6 flex items-center justify-center shadow-sm">
+              <i class="ri-add-line text-brand-dark text-3xl"></i>
+            </div>
+            <h3 class="font-serif font-bold text-2xl leading-tight mb-2 text-brand-dark shadow-sm">Write today</h3>
+            <p class="text-[10px] text-brand-dark/70 font-bold tracking-widest font-sans uppercase">Tap to start</p>
+          </div>
         </div>
       </div>`;
-  } else {
-    mainCardHtml = `<div class="min-w-[280px] bg-[#FACC50] rounded-[32px] p-4 sm:p-6 snap-center shadow-soft flex items-center justify-center text-center cursor-pointer" onclick="switchScreen('screen-create')"><h3 class="font-bold text-brand-dark text-lg">Let's start your day<br/><span class="text-sm font-normal">Tap '+' to begin your first journal</span></h3></div>`;
   }
 
-  const bgColors = ['bg-card-peach', 'bg-card-lavender', 'bg-card-sage'];
-  let quickJournalsHtml = quickEntries.map((q, idx) => `
-    <div onclick="viewEntry('${q.id}')" class="${bgColors[idx % 3]} p-5 rounded-3xl min-w-[160px] snap-start shadow-sm relative overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-md transition-shadow" style="min-height: 180px;">
-      <div>
-        <h3 class="font-semibold text-brand-text mb-2 text-sm whitespace-nowrap overflow-hidden text-ellipsis">${q.title}</h3>
-        <p class="text-brand-text/70 text-xs leading-relaxed max-h-[60px] overflow-hidden">${q.content.replace(/<[^>]*>/g, '').substring(0, 60)}...</p>
-      </div>
-      <div class="flex items-center justify-between mt-4">
-        <span class="text-xs text-brand-text/50">${new Date(q.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-        <span class="bg-white px-3 py-1 rounded-full text-[10px] font-semibold text-brand-yellow shadow-sm">${q.emotion}</span>
-      </div>
-    </div>`).join('');
+  // 2. Genre Shelves Construction
+  const genreMap = {};
+  sortedEntries.forEach(entry => {
+    const genre = entry.emotion || 'Collection';
+    if (!genreMap[genre]) genreMap[genre] = [];
+    genreMap[genre].push(entry);
+  });
 
-  if (quickEntries.length === 0) quickJournalsHtml = `<div class="w-full text-center py-6 text-brand-lightText text-sm bg-white/50 rounded-[32px] border border-gray-100">No entries on ${selectedDateObj.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}.<br/><br/><button onclick="switchScreen('screen-create')" class="text-brand-orange font-bold">Write one now</button></div>`;
+  let shelvesHtml = '';
+  if (Object.keys(genreMap).length > 0) {
+    for (const [genre, entries] of Object.entries(genreMap)) {
+      const booksHtml = entries.map(q => `
+        <div onclick="viewEntry('${q.id}')" class="relative min-w-[130px] w-[130px] h-[180px] snap-start cursor-pointer group mb-4 mt-2">
+          <div class="absolute top-4 bottom-2 -right-3 w-6 bg-black/15 rounded-r-2xl blur-md group-hover:-right-4 transition-all duration-300"></div>
+          <div class="relative w-full h-full rounded-r-xl rounded-l-[3px] overflow-hidden shadow-[2px_0_10px_rgba(0,0,0,0.05),inset_2px_0_4px_rgba(255,255,255,0.4)] group-hover:-translate-y-2 group-hover:shadow-[7px_7px_20px_rgba(0,0,0,0.15)] transition-all duration-300 bg-brand-gray">
+            <div class="absolute top-0 bottom-0 left-0 w-2.5 bg-gradient-to-r from-black/40 via-black/10 to-transparent z-20 mix-blend-multiply"></div>
+            <div class="absolute top-0 bottom-0 left-[9px] w-[1px] bg-white/40 z-20"></div>
+            <div class="absolute top-0 bottom-0 left-[10px] w-[1px] bg-black/10 z-20"></div>
+            <img src="${q.coverImage || DEFAULT_COVER}" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/90 pointer-events-none z-10"></div>
+            <div class="absolute inset-0 z-20 p-3 pt-4 flex flex-col justify-between">
+              <div class="flex justify-end">
+                <span class="inline-flex items-center px-1.5 py-0.5 bg-white/20 backdrop-blur-sm rounded-[4px] text-[8px] text-white font-bold tracking-wider uppercase border border-white/20 shadow-sm">${genre}</span>
+              </div>
+              <div class="mt-auto">
+                <h3 class="font-serif font-bold text-sm leading-[1.1] mb-1 text-white drop-shadow-md" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 1px 4px rgba(0,0,0,0.8);">${q.title}</h3>
+                <p class="text-[9px] text-white/80 font-medium tracking-widest font-sans uppercase">${new Date(q.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      shelvesHtml += `
+        <div class="mb-8">
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="text-lg font-bold text-brand-dark capitalize">${genre} Collection</h2>
+            <span class="text-xs font-semibold text-brand-lightText lowercase">${entries.length} ${entries.length === 1 ? 'entry' : 'entries'} <i class="ri-arrow-right-s-line align-middle"></i></span>
+          </div>
+          <div class="flex gap-4 overflow-x-auto hide-scrollbar -mx-4 sm:-mx-6 px-4 sm:px-6 snap-x pb-2">
+            ${booksHtml}
+          </div>
+        </div>
+      `;
+    }
+  } else {
+    shelvesHtml = `<div class="w-full text-center py-10 px-6 text-brand-lightText text-sm"><i class="ri-book-open-line text-4xl mb-3 block opacity-30"></i>Your collection is currently empty.<br/><br/><button onclick="switchScreen('screen-create')" class="text-brand-orange font-bold">Write your first journal</button></div>`;
+  }
 
   const user = getCurrentUser();
   const rawName = user && user.name ? user.name : 'Friend';
@@ -730,27 +758,26 @@ function renderHomeScreen() {
   const avatarHtml = user ? getAvatarHtml(user, 48) : '';
 
   container.innerHTML = `
-    <div class="sticky -top-4 sm:-top-6 z-40 bg-brand-gray/95 backdrop-blur-md -mx-4 sm:-mx-6 px-4 sm:px-6 pt-8 sm:pt-10 pb-4 mb-6 shadow-[0_10px_30px_rgba(245,245,247,0.8)]">
-      <header class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight transform origin-left transition-all">Hi, ${firstName}</h1>
+    <div class="sticky -top-4 sm:-top-6 z-40 bg-brand-gray/95 backdrop-blur-md -mx-4 sm:-mx-6 px-4 sm:px-6 pt-8 sm:pt-10 pb-4 mb-2 shadow-[0_10px_30px_rgba(245,245,247,0.8)]">
+      <header class="flex justify-between items-center">
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight transform origin-left transition-all">My Journals</h1>
         <button onclick="switchScreen('screen-profile')" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-white shadow-sm flex items-center justify-center bg-brand-yellow flex-shrink-0 transition-transform hover:scale-105">
           ${avatarHtml}
         </button>
       </header>
-      <div class="flex overflow-x-auto hide-scrollbar gap-2 pb-2 snap-x relative -mx-4 sm:-mx-6 px-4 sm:px-6">${calendarHtml}</div>
     </div>
-    <div class="mb-8">
-      <h2 class="text-xl font-bold mb-4">Latest Entry</h2>
+    
+    <div class="mb-6">
+      <div class="flex justify-between items-center mb-1">
+        <h2 class="text-xl font-bold">Latest Writings</h2>
+      </div>
       <div class="flex gap-4 overflow-x-auto hide-scrollbar -mx-4 sm:-mx-6 px-4 sm:px-6 snap-x pb-4">
-        ${mainCardHtml}
-        <div class="min-w-[100px] bg-[#D7D0C4] rounded-[32px] p-4 sm:p-6 snap-center flex justify-center items-center shadow-soft">
-          <span class="rotate-[-90deg] font-bold text-brand-dark/60 tracking-widest uppercase text-sm">Evening</span>
-        </div>
+        ${mainCardsHtml}
       </div>
     </div>
+    
     <div class="mb-4">
-      <h2 class="text-xl font-bold mb-4">Journals on Selected Date</h2>
-      <div class="flex gap-4 overflow-x-auto hide-scrollbar -mx-4 sm:-mx-6 px-4 sm:px-6 snap-x">${quickJournalsHtml}</div>
+      ${shelvesHtml}
     </div>`;
 }
 
