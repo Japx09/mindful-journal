@@ -178,7 +178,12 @@
       <div class="bg-white w-full rounded-t-[32px] p-6 pb-10 shadow-2xl">
         <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
         <h3 class="text-xl font-bold mb-2">Change Cover Photo</h3>
-        <p class="text-sm text-brand-lightText mb-5">Paste an image URL or choose from our curated collection below.</p>
+        <p class="text-sm text-brand-lightText mb-5">Upload a photo, paste a URL, or choose a preset.</p>
+
+        <input type="file" id="cover-file-input" accept="image/*" class="hidden" onchange="handleCoverFileUpload(event)">
+        <button onclick="document.getElementById('cover-file-input').click()" class="w-full py-3 bg-brand-dark text-white font-bold rounded-xl text-sm mb-3 flex items-center justify-center gap-2 hover:bg-black transition-colors">
+          <i class="ri-upload-2-line text-lg"></i> Upload from Device
+        </button>
 
         <div class="flex gap-2 mb-5">
           <input type="text" id="img-url-input" placeholder="https://..." class="flex-1 bg-brand-gray px-4 py-3 rounded-xl text-sm outline-none border border-gray-200 focus:border-brand-yellow transition-colors">
