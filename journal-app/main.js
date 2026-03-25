@@ -354,16 +354,16 @@ window.switchScreen = function (screenId) {
 
   const bottomNav = document.getElementById('bottom-nav');
   const screensContainer = document.getElementById('screens-container');
-  if (bottomNav) {
-    if (screenId === 'screen-detail') {
-      bottomNav.classList.add('hidden');
-      bottomNav.classList.remove('flex');
-      if (screensContainer) screensContainer.classList.remove('pb-24');
-    } else {
-      bottomNav.classList.remove('hidden');
-      bottomNav.classList.add('flex');
-      if (screensContainer) screensContainer.classList.add('pb-24');
-    }
+  const detailOverlay = document.getElementById('detail-overlay');
+  
+  if (screenId === 'screen-detail') {
+    if (bottomNav) { bottomNav.classList.add('hidden'); bottomNav.classList.remove('flex'); }
+    if (screensContainer) screensContainer.classList.remove('pb-24');
+  } else {
+    // Clean up detail overlay when leaving
+    if (detailOverlay) detailOverlay.remove();
+    if (bottomNav) { bottomNav.classList.remove('hidden'); bottomNav.classList.add('flex'); }
+    if (screensContainer) screensContainer.classList.add('pb-24');
   }
 
   const target = document.getElementById(screenId);
@@ -985,11 +985,19 @@ window.toggleActionMenu = function() {
 }
 
 function renderDetailScreen() {
-  const container = document.getElementById('screen-detail');
   const book = store.entries.find(e => e.id === activeEntryId);
   
+  // Get or create the overlay (direct child of app-wrapper for reliable sizing)
+  let overlay = document.getElementById('detail-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'detail-overlay';
+    document.getElementById('app-wrapper').appendChild(overlay);
+  }
+  overlay.style.cssText = 'position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;';
+  
   if (!book) {
-    container.innerHTML = `<div class="p-6 pt-20 text-center"><p>Book not found.</p><button onclick="tryExitFullscreen(); switchScreen('screen-home')" class="mt-4 text-brand-orange font-bold">Go Back</button></div>`;
+    overlay.innerHTML = '<div class="p-6 pt-20 text-center"><p>Book not found.</p><button onclick="tryExitFullscreen(); switchScreen(\'screen-home\')" class="mt-4 text-brand-orange font-bold">Go Back</button></div>';
     return;
   }
 
@@ -1008,28 +1016,26 @@ function renderDetailScreen() {
   const totalPages = book.pages.length;
 
   if (isEditing) {
-    container.innerHTML = `<div class="absolute inset-0 z-10 bg-white flex flex-col h-full">
-      
-      <!-- STICKY TOP: Close + Save -->
-      <div class="sticky top-0 z-50 w-full flex justify-between items-center px-5 py-3 bg-white/80 backdrop-blur-md border-b border-gray-100/50">
-        <button onclick="toggleEdit()" class="w-10 h-10 rounded-full bg-[#113a4d] text-white flex items-center justify-center hover:bg-[#0a2533] transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
-          <i class="ri-close-line text-[26px]"></i>
-        </button>
-        <button onclick="saveEdit()" class="px-6 h-10 bg-[#ffb833] text-[#131313] rounded-full font-extrabold text-[15px] tracking-wide shadow-[0_4px_15px_rgba(255,184,51,0.4)] hover:scale-105 transition-transform flex items-center gap-1.5">
-          <i class="ri-check-line text-[22px] font-bold"></i> Save
-        </button>
-      </div>
-
+    overlay.innerHTML = `
       <!-- SCROLLABLE MIDDLE -->
-      <div class="flex-1 overflow-y-auto">
+      <div style="flex:1;overflow-y:auto;" class="w-full">
         <div class="w-full max-w-2xl mx-auto">
           
-          <!-- Cover Image -->
+          <!-- Cover Image with floating Close + Save -->
           <div class="w-full h-[180px] sm:h-[220px] relative group cursor-pointer" onclick="openImgPicker()">
             <img id="detail-cover" src="${book.coverImage || DEFAULT_COVER}" class="w-full h-full object-cover">
             <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity backdrop-blur-sm">
               <i class="ri-image-edit-fill text-3xl mb-1"></i>
               <span class="text-sm font-bold tracking-wider">CHANGE COVER</span>
+            </div>
+            <!-- Floating Close + Save over cover -->
+            <div class="absolute top-4 left-4 right-4 flex justify-between items-center z-20">
+              <button onclick="event.stopPropagation(); toggleEdit()" class="w-10 h-10 rounded-full bg-[#113a4d] text-white flex items-center justify-center hover:bg-[#0a2533] transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
+                <i class="ri-close-line text-[26px]"></i>
+              </button>
+              <button onclick="event.stopPropagation(); saveEdit()" class="px-6 h-10 bg-[#ffb833] text-[#131313] rounded-full font-extrabold text-[15px] tracking-wide shadow-[0_4px_15px_rgba(255,184,51,0.4)] hover:scale-105 transition-transform flex items-center gap-1.5">
+                <i class="ri-check-line text-[22px] font-bold"></i> Save
+              </button>
             </div>
           </div>
 
@@ -1038,14 +1044,14 @@ function renderDetailScreen() {
               <p class="text-brand-orange font-medium text-sm tracking-wide">${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
             </div>
 
-            <input type="text" id="edit-title" value="${book.title}" placeholder="Book Title" class="w-full text-left text-[28px] sm:text-[34px] font-extrabold text-brand-dark mb-4 leading-tight tracking-tight outline-none border-b border-dashed border-gray-200 pb-2 bg-transparent">
+            <input type="text" id="edit-title" value="${book.title}" placeholder="Book Title" class="w-full text-left text-[22px] sm:text-[28px] font-extrabold text-brand-dark mb-4 leading-tight tracking-tight outline-none border-b border-dashed border-gray-200 pb-2 bg-transparent">
             
             <div class="flex justify-start mb-6">
               <select id="edit-emotion" class="bg-brand-orange/10 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-brand-orange outline-none shadow-sm cursor-pointer border border-transparent focus:border-brand-yellow transition-colors">
-                <option value="Happy" ${book.emotion === 'Happy' ? 'selected' : ''}>😊 Happy</option>
-                <option value="Calm" ${book.emotion === 'Calm' ? 'selected' : ''}>😌 Calm</option>
-                <option value="Anxious" ${book.emotion === 'Anxious' ? 'selected' : ''}>😰 Anxious</option>
-                <option value="Sad" ${book.emotion === 'Sad' ? 'selected' : ''}>😔 Sad</option>
+                <option value="Happy" ${book.emotion === 'Happy' ? 'selected' : ''}>Happy</option>
+                <option value="Calm" ${book.emotion === 'Calm' ? 'selected' : ''}>Calm</option>
+                <option value="Anxious" ${book.emotion === 'Anxious' ? 'selected' : ''}>Anxious</option>
+                <option value="Sad" ${book.emotion === 'Sad' ? 'selected' : ''}>Sad</option>
               </select>
             </div>
 
@@ -1054,13 +1060,12 @@ function renderDetailScreen() {
             </div>
 
             <div class="w-full">
-              <div id="edit-rte" class="prose prose-sm font-sans text-brand-text leading-[1.8] text-[16px] sm:text-[18px] w-full outline-none min-h-[300px]"></div>
+              <div id="edit-rte" class="prose prose-sm font-sans text-brand-text leading-[1.8] text-[15px] sm:text-[17px] w-full outline-none min-h-[300px]"></div>
             </div>
           </div>
         </div>
       </div>
-
-    </div>`;
+    `;
 
     const rte = document.getElementById('edit-rte');
     if (rte) rte.innerHTML = page.content || '';
@@ -1069,17 +1074,16 @@ function renderDetailScreen() {
   }
 
   // View mode
-  container.innerHTML = `<div class="absolute inset-0 z-10 bg-white flex flex-col h-full">
-    
+  overlay.innerHTML = `
     <!-- FIXED TOP: Back + 3-Dots (floating over content) -->
-    <div class="absolute top-0 left-0 right-0 z-50 flex justify-between items-center px-5 py-4 pointer-events-none">
+    <div style="position:absolute;top:0;left:0;right:0;z-index:50;pointer-events:none;" class="flex justify-between items-center px-5 py-4">
       <button onclick="tryExitFullscreen(); switchScreen('screen-home')" class="pointer-events-auto w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.15)] ring-1 ring-white/10">
-        <i class="ri-arrow-left-s-line text-[30px]"></i>
+        <i class="ri-arrow-left-s-line text-[28px]"></i>
       </button>
       
       <div class="relative pointer-events-auto">
         <button onclick="toggleActionMenu()" class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.15)] ring-1 ring-white/10">
-          <i class="ri-more-2-fill text-[24px]"></i>
+          <i class="ri-more-2-fill text-[22px]"></i>
         </button>
         
         <!-- 3-Dot Dropdown Menu -->
@@ -1098,26 +1102,26 @@ function renderDetailScreen() {
       </div>
     </div>
 
-    <!-- SCROLLABLE CONTENT (fills between top icons and bottom bar) -->
-    <div class="flex-1 overflow-y-auto pb-[60px]">
-      <div class="w-full max-w-2xl mx-auto min-h-full flex flex-col">
+    <!-- SCROLLABLE CONTENT -->
+    <div style="flex:1;overflow-y:auto;padding-bottom:52px;" class="w-full">
+      <div class="w-full max-w-2xl mx-auto">
         
         <!-- Cover Image -->
-        <div class="w-full h-[180px] sm:h-[220px] relative flex-shrink-0">
+        <div class="w-full h-[180px] sm:h-[220px] relative">
           <img src="${book.coverImage || DEFAULT_COVER}" class="w-full h-full object-cover">
           <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent pointer-events-none"></div>
         </div>
 
-        <div class="px-5 sm:px-6 pt-6 flex flex-col w-full flex-1">
-          <div class="text-left mb-6">
+        <div class="px-5 sm:px-6 pt-6 pb-6 flex flex-col w-full">
+          <div class="text-left mb-5">
             <p class="text-brand-orange font-bold text-sm mb-2 tracking-wide">${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
-            <h1 class="text-[28px] sm:text-[34px] font-extrabold text-brand-dark mb-4 leading-tight tracking-tight">${book.title}</h1>
+            <h1 class="text-[22px] sm:text-[28px] font-extrabold text-brand-dark mb-3 leading-tight tracking-tight">${book.title}</h1>
             <div class="flex justify-start">
-              <span class="px-4 py-1.5 bg-brand-orange/10 text-brand-orange rounded-full text-xs font-bold uppercase tracking-wider">${book.emotion}</span>
+              <span class="px-4 py-1 bg-brand-orange/10 text-brand-orange rounded-full text-[11px] font-bold uppercase tracking-wider">${book.emotion}</span>
             </div>
           </div>
 
-          <div class="prose prose-sm font-sans text-brand-text leading-[1.8] text-[16px] sm:text-[18px] w-full flex-1 max-w-none">
+          <div class="prose prose-sm font-sans text-brand-text leading-[1.8] text-[15px] sm:text-[17px] w-full max-w-none">
             ${page.content || '<p class="italic opacity-50 text-left">No entry written for this page.</p>'}
           </div>
         </div>
@@ -1125,7 +1129,7 @@ function renderDetailScreen() {
     </div>
 
     <!-- FIXED BOTTOM: Pagination -->
-    <div class="absolute bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 px-5 py-3">
+    <div style="flex-shrink:0;" class="w-full bg-white border-t border-gray-100 px-5 py-3 z-50">
       <div class="flex justify-between items-center w-full max-w-2xl mx-auto">
         <button onclick="flipPage('prev')" class="font-bold text-gray-400 hover:text-brand-dark transition-colors px-2 py-2 uppercase tracking-widest text-[11px] flex items-center gap-1 group/btn ${activePageIndex === 0 ? 'invisible pointer-events-none' : ''}">
           <i class="ri-arrow-left-s-line text-lg group-hover/btn:-translate-x-1 transition-transform"></i> Prev
@@ -1134,14 +1138,14 @@ function renderDetailScreen() {
         <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-full">Page ${activePageIndex + 1} of ${totalPages}</span>
         
         ${activePageIndex === totalPages - 1 
-          ? `<button onclick="writeNewPage()" class="font-bold text-brand-orange hover:text-orange-600 transition-colors px-2 py-2 flex items-center gap-1 uppercase tracking-widest text-[11px] group/btn">Write <i class="ri-add-line text-lg group-hover/btn:rotate-90 transition-transform"></i></button>`
+          ? '<button onclick="writeNewPage()" class="font-bold text-brand-orange hover:text-orange-600 transition-colors px-2 py-2 flex items-center gap-1 uppercase tracking-widest text-[11px] group/btn">Write <i class="ri-add-line text-lg group-hover/btn:rotate-90 transition-transform"></i></button>'
           : `<button onclick="flipPage('next')" class="font-bold text-gray-400 hover:text-brand-dark transition-colors px-2 py-2 flex items-center gap-1 uppercase tracking-widest text-[11px] group/btn">Next <i class="ri-arrow-right-s-line text-lg group-hover/btn:translate-x-1 transition-transform"></i></button>`
         }
       </div>
     </div>
-
-  </div>`;
+  `;
 }
+
 
 window.deleteEntry = function (id) {
   if (confirm("Are you sure you want to delete this journal entry?")) {
