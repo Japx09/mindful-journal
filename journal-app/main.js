@@ -902,6 +902,21 @@ window.viewEntry = function (id) {
 }
 
 window.toggleEdit = function () {
+  if (isEditing) {
+    // Closing edit mode — discard empty pages
+    const book = store.entries.find(e => e.id === activeEntryId);
+    if (book && activePageIndex >= 0 && activePageIndex < book.pages.length) {
+      const page = book.pages[activePageIndex];
+      const content = (page.content || '').replace(/<[^>]*>/g, '').trim();
+      if (!content) {
+        // Remove the empty page
+        book.pages.splice(activePageIndex, 1);
+        saveStore();
+        // Go back to last page (or 0 if none left)
+        activePageIndex = Math.max(0, book.pages.length - 1);
+      }
+    }
+  }
   isEditing = !isEditing;
   renderDetailScreen();
 }
@@ -969,6 +984,75 @@ window.writeNewPage = function() {
   activePageIndex = book.pages.length - 1;
   isEditing = true;
   renderDetailScreen();
+}
+
+// =================== IMAGE PICKER ===================
+
+let _imgPickerContext = null; // 'detail' or 'create'
+
+window.openImgPicker = function() {
+  _imgPickerContext = (document.getElementById('detail-overlay')) ? 'detail' : 'create';
+  const modal = document.getElementById('img-picker-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+}
+
+window.closeImgPicker = function() {
+  const modal = document.getElementById('img-picker-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+  document.getElementById('img-url-input').value = '';
+}
+
+function applyCoverImage(src) {
+  if (_imgPickerContext === 'detail') {
+    // Apply to current journal book
+    const book = store.entries.find(e => e.id === activeEntryId);
+    if (book) {
+      book.coverImage = src;
+      saveStore();
+      const coverEl = document.getElementById('detail-cover');
+      if (coverEl) coverEl.src = src;
+    }
+  } else {
+    // Apply to create screen
+    _createCoverImage = src;
+    const coverEl = document.getElementById('create-cover');
+    const containerEl = document.getElementById('create-cover-container');
+    const btnAddEl = document.getElementById('create-cover-btn');
+    if (coverEl && containerEl) {
+      coverEl.src = src;
+      containerEl.classList.remove('hidden');
+      if (btnAddEl) btnAddEl.classList.add('hidden');
+    }
+  }
+  closeImgPicker();
+}
+
+window.applyPresetImage = function(src) {
+  applyCoverImage(src);
+}
+
+window.applyCustomImageUrl = function() {
+  const url = document.getElementById('img-url-input').value.trim();
+  if (!url) { alert('Please enter a valid image URL.'); return; }
+  applyCoverImage(url);
+}
+
+window.handleCoverFileUpload = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { alert('Image too large. Please pick one under 2 MB.'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    applyCoverImage(e.target.result);
+  };
+  reader.readAsDataURL(file);
+  event.target.value = ''; // reset so same file can be re-selected
 }
 
 window.toggleActionMenu = function() {
