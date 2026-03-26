@@ -353,17 +353,14 @@ window.switchScreen = function (screenId) {
   });
 
   const bottomNav = document.getElementById('bottom-nav');
-  const screensContainer = document.getElementById('screens-container');
   const detailOverlay = document.getElementById('detail-overlay');
   
   if (screenId === 'screen-detail') {
     if (bottomNav) { bottomNav.classList.add('hidden'); bottomNav.classList.remove('flex'); }
-    if (screensContainer) screensContainer.classList.remove('pb-24');
   } else {
     // Clean up detail overlay when leaving
     if (detailOverlay) detailOverlay.remove();
     if (bottomNav) { bottomNav.classList.remove('hidden'); bottomNav.classList.add('flex'); }
-    if (screensContainer) screensContainer.classList.add('pb-24');
   }
 
   const target = document.getElementById(screenId);
@@ -1179,8 +1176,8 @@ function renderDetailScreen() {
             <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600"><i class="ri-sparkling-fill"></i></div> Ask AI
           </button>
           <div class="border-t border-gray-100 my-1 mx-2"></div>
-          <button onclick="deleteEntry('${book.id}')" class="flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-left text-sm font-bold text-red-500 transition-colors">
-            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500"><i class="ri-delete-bin-fill"></i></div> Delete Book
+          <button onclick="deletePage()" class="flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-left text-sm font-bold text-red-500 transition-colors">
+            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500"><i class="ri-delete-bin-fill"></i></div> Delete Page
           </button>
         </div>
       </div>
@@ -1237,6 +1234,24 @@ window.deleteEntry = function (id) {
     if (activeEntryId === id) activeEntryId = null;
     saveStore();
     switchScreen('screen-home');
+  }
+}
+
+window.deletePage = function() {
+  const book = store.entries.find(e => e.id === activeEntryId);
+  if (!book || !book.pages) return;
+  
+  if (book.pages.length <= 1) {
+    alert("Can't delete the last page. Delete the book from the home screen instead.");
+    return;
+  }
+  
+  if (confirm(`Delete page ${activePageIndex + 1}? This cannot be undone.`)) {
+    book.pages.splice(activePageIndex, 1);
+    activePageIndex = Math.max(0, activePageIndex - 1);
+    saveStore();
+    toggleActionMenu(); // close menu
+    renderDetailScreen();
   }
 }
 

@@ -53,9 +53,9 @@
       }
     </style>
 </head>
-<body class="bg-brand-gray text-brand-text font-sans antialiased sm:flex sm:justify-center sm:items-center sm:h-screen sm:bg-gray-200">
+<body class="bg-brand-gray text-brand-text font-sans antialiased h-screen sm:flex sm:justify-center sm:items-center sm:bg-gray-200">
   <!-- Mobile Emulator Container for Desktop -->
-  <div id="app-wrapper" class="w-full h-full min-h-screen bg-brand-gray relative overflow-hidden sm:w-[390px] sm:h-[844px] sm:min-h-[844px] sm:rounded-[40px] sm:shadow-2xl sm:border-[8px] sm:border-white flex flex-col">
+  <div id="app-wrapper" class="w-full h-full bg-brand-gray relative overflow-hidden sm:w-[390px] sm:h-[844px] sm:rounded-[40px] sm:shadow-2xl sm:border-[8px] sm:border-white flex flex-col">
 
     <!-- Auth Overlay — covers the entire app until user is logged in -->
     <div id="auth-overlay" class="absolute inset-0 z-[500] bg-white flex flex-col overflow-y-auto hide-scrollbar">
@@ -81,7 +81,7 @@
 
     <!-- Screens Container -->
 
-    <div id="screens-container" class="flex-1 overflow-y-auto pb-24 hide-scrollbar relative bg-brand-gray">
+    <div id="screens-container" class="flex-1 overflow-y-auto hide-scrollbar relative bg-brand-gray">
       <!-- Home Screen -->
       <div id="screen-home" class="screen-view active w-full min-h-full p-4 sm:p-6 transition-opacity duration-300">
         <!-- Content injected by JS -->
@@ -109,7 +109,7 @@
     </div>
 
     <!-- Bottom Navigation -->
-    <nav id="bottom-nav" class="absolute bottom-0 left-0 w-full bg-white px-4 sm:px-6 pb-6 sm:pb-8 pt-3 sm:pt-4 rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.03)] flex justify-around sm:justify-between items-center z-50">
+    <nav id="bottom-nav" class="sticky bottom-0 w-full bg-white px-4 sm:px-6 pb-6 sm:pb-8 pt-3 sm:pt-4 rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.03)] flex justify-around sm:justify-between items-center z-50 flex-shrink-0">
       <button class="nav-item active flex flex-col items-center gap-1 text-brand-dark" data-target="screen-home">
         <i class="ri-home-5-fill text-2xl"></i>
         <span class="text-[10px] font-medium">Home</span>
