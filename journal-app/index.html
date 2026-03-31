@@ -185,6 +185,17 @@
         </button>
       </div>
     </div>
+    <!-- Custom Global Dialog (Alert/Confirm) -->
+    <div id="custom-dialog-modal" class="fixed inset-0 z-[1000] bg-black/50 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
+      <div class="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl text-center transform scale-95 opacity-0 transition-all duration-200" id="custom-dialog-card">
+        <h3 id="custom-dialog-title" class="text-xl font-bold text-brand-dark mb-2">Notification</h3>
+        <p id="custom-dialog-message" class="text-brand-text mb-6">Message goes here.</p>
+        
+        <div id="custom-dialog-buttons" class="flex gap-3 justify-center">
+          <!-- Dynamically filled by JS -->
+        </div>
+      </div>
+    </div>
 
     <!-- Image Picker Modal -->
     <div id="img-picker-modal" class="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm hidden flex-col justify-end">

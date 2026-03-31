@@ -1,3 +1,64 @@
+// ===================== CUSTOM ALERTS/CONFIRMS =====================
+
+window.showCustomModal = function (options) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('custom-dialog-modal');
+    const card = document.getElementById('custom-dialog-card');
+    const titleEl = document.getElementById('custom-dialog-title');
+    const msgEl = document.getElementById('custom-dialog-message');
+    const buttonsEl = document.getElementById('custom-dialog-buttons');
+
+    if (!modal) {
+      if (options.type === 'confirm') resolve(confirm(options.message));
+      else { alert(options.message); resolve(true); }
+      return;
+    }
+
+    titleEl.textContent = options.title || (options.type === 'confirm' ? 'Confirm' : 'Notice');
+    msgEl.textContent = options.message;
+    buttonsEl.innerHTML = '';
+
+    const close = (result) => {
+      card.classList.remove('scale-100', 'opacity-100');
+      card.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        resolve(result);
+      }, 200);
+    };
+
+    if (options.type === 'confirm') {
+       buttonsEl.innerHTML = `
+         <button id="custom-dialog-cancel" class="flex-1 py-3 px-4 rounded-xl font-bold bg-brand-gray text-brand-dark hover:bg-gray-200 transition-colors cursor-pointer">Cancel</button>
+         <button id="custom-dialog-confirm" class="flex-1 py-3 px-4 rounded-xl font-bold transition-colors cursor-pointer ${options.isDanger ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-brand-yellow hover:scale-105 text-brand-dark shadow-[0_4px_15px_rgba(255,184,51,0.4)]'}">${options.confirmText || 'Yes'}</button>
+       `;
+       document.getElementById('custom-dialog-cancel').onclick = () => close(false);
+       document.getElementById('custom-dialog-confirm').onclick = () => close(true);
+    } else {
+       buttonsEl.innerHTML = `
+         <button id="custom-dialog-ok" class="w-full py-3 px-4 rounded-xl font-bold bg-brand-dark hover:bg-black text-white transition-colors cursor-pointer">OK</button>
+       `;
+       document.getElementById('custom-dialog-ok').onclick = () => close(true);
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    requestAnimationFrame(() => {
+      card.classList.remove('scale-95', 'opacity-0');
+      card.classList.add('scale-100', 'opacity-100');
+    });
+  });
+};
+
+window.showAlert = function(message, title = "Notification") {
+  return window.showCustomModal({ type: 'alert', message, title });
+}
+
+window.showConfirm = function(message, title = "Are you sure?", isDanger = false, confirmText = "Confirm") {
+  return window.showCustomModal({ type: 'confirm', message, title, isDanger, confirmText });
+}
+
 // ===================== LOCAL STORAGE AUTH =====================
 
 let authStore = {
@@ -561,7 +622,7 @@ window.aiRewriteSelection = async function (mode) {
     const result = await callActualGemini(prompt);
     replaceSelectionWithAiText(result.trim());
   } catch (err) {
-    alert('AI Error: ' + (err.message || 'Failed to reach Gemini.'));
+    showAlert('AI Error: ' + (err.message || 'Failed to reach Gemini.'));
   }
 }
 
@@ -661,7 +722,7 @@ async function runAskAi(prompt) {
     }
   } catch (err) {
     loading.classList.add('hidden');
-    alert('AI Error: ' + (err.message || 'Failed to reach Gemini.'));
+    showAlert('AI Error: ' + (err.message || 'Failed to reach Gemini.'));
   }
 }
 
@@ -883,7 +944,7 @@ window.actionEditBook = function() {
 }
 
 window.actionDeleteBook = async function() {
-  if (confirm("Are you sure you want to completely delete this book? This action cannot be undone.")) {
+  if (await showConfirm("Are you sure you want to completely delete this book? This action cannot be undone.", "Delete Book", true, "Delete")) {
     closeBookOptions();
     await deleteEntry(activeEntryId);
     saveStore(); // Backup to local storage in case backend sync fails
@@ -1036,14 +1097,14 @@ window.applyPresetImage = function(src) {
 
 window.applyCustomImageUrl = function() {
   const url = document.getElementById('img-url-input').value.trim();
-  if (!url) { alert('Please enter a valid image URL.'); return; }
+  if (!url) { showAlert('Please enter a valid image URL.'); return; }
   applyCoverImage(url);
 }
 
 window.handleCoverFileUpload = function(event) {
   const file = event.target.files[0];
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) { alert('Image too large. Please pick one under 2 MB.'); return; }
+  if (file.size > 2 * 1024 * 1024) { showAlert('Image too large. Please pick one under 2 MB.'); return; }
   const reader = new FileReader();
   reader.onload = function(e) {
     applyCoverImage(e.target.result);
@@ -1228,8 +1289,8 @@ function renderDetailScreen() {
 }
 
 
-window.deleteEntry = function (id) {
-  if (confirm("Are you sure you want to delete this journal entry?")) {
+window.deleteEntry = async function (id) {
+  if (await showConfirm("Are you sure you want to delete this journal entry?", "Delete Book", true, "Delete")) {
     store.entries = store.entries.filter(e => e.id !== id);
     if (activeEntryId === id) activeEntryId = null;
     saveStore();
@@ -1237,16 +1298,16 @@ window.deleteEntry = function (id) {
   }
 }
 
-window.deletePage = function() {
+window.deletePage = async function() {
   const book = store.entries.find(e => e.id === activeEntryId);
   if (!book || !book.pages) return;
   
   if (book.pages.length <= 1) {
-    alert("Can't delete the last page. Delete the book from the home screen instead.");
+    showAlert("Can't delete the last page. Delete the book from the home screen instead.");
     return;
   }
   
-  if (confirm(`Delete page ${activePageIndex + 1}? This cannot be undone.`)) {
+  if (await showConfirm(`Delete page ${activePageIndex + 1}? This cannot be undone.`, "Delete Page", true, "Delete")) {
     book.pages.splice(activePageIndex, 1);
     activePageIndex = Math.max(0, activePageIndex - 1);
     saveStore();
@@ -1313,7 +1374,7 @@ window.saveNewEntry = function () {
   const content = rte ? rte.innerHTML : '';
   const plainText = content.replace(/<[^>]*>/g, '').trim();
 
-  if (!title || !plainText) { alert("Please provide both a title and some content."); return; }
+  if (!title || !plainText) { showAlert("Please provide both a title and some content."); return; }
 
   const emotion = emotionRaw.replace(/[^\w]/g, '').replace(/\d/g, '').trim();
   const tags = tagsRaw.split(',').map(t => t.trim()).filter(t => t);
@@ -1453,8 +1514,8 @@ window.closeExploreAddModal = function() {
 window.handleExploreFileUpload = function(event) {
   const file = event.target.files?.[0];
   if (!file) return;
-  if (!file.type.startsWith('image/')) { alert('Please select an image file.'); return; }
-  if (file.size > 2 * 1024 * 1024) { alert('Image too large. Max 2MB.'); return; }
+  if (!file.type.startsWith('image/')) { showAlert('Please select an image file.'); return; }
+  if (file.size > 2 * 1024 * 1024) { showAlert('Image too large. Max 2MB.'); return; }
   
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -1467,7 +1528,7 @@ window.handleExploreFileUpload = function(event) {
 window.saveExploreInspiration = function() {
   const url = document.getElementById('explore-add-url').value.trim();
   const tagsStr = document.getElementById('explore-add-tags').value.trim();
-  if (!url) { alert('Please provide an image URL or upload one from your device.'); return; }
+  if (!url) { showAlert('Please provide an image URL or upload one from your device.'); return; }
   
   let tags = tagsStr.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
   if (tags.length === 0) tags = ['custom', 'aesthetic'];
@@ -1669,7 +1730,7 @@ window.saveUserProfile = function () {
   if (!user) return;
   const name = document.getElementById('profile-name')?.value.trim();
   const desc = document.getElementById('profile-desc')?.value.trim();
-  if (!name) { alert('Name cannot be empty.'); return; }
+  if (!name) { showAlert('Name cannot be empty.'); return; }
   user.name = name;
   user.description = desc;
   saveAuthStore();
@@ -1696,13 +1757,13 @@ window.openChangeRole = function () {
 window.requestChangeEmail = function () {
   const newEmail = prompt("Enter your new email address:");
   if (!newEmail) return;
-  alert(`An OTP (One-Time Password) has been sent to ${newEmail} (simulated for local storage).`);
+  showAlert(`An OTP (One-Time Password) has been sent to ${newEmail} (simulated for local storage).`);
   const otp = prompt("Please enter the 6-digit OTP sent to your email:");
   if (otp) {
     const user = getCurrentUser();
     const oldEmail = user.email;
     const newEmailLower = newEmail.trim().toLowerCase();
-    if (authStore.users[newEmailLower]) { alert('Email is already in use!'); return; }
+    if (authStore.users[newEmailLower]) { showAlert('Email is already in use!'); return; }
 
     user.email = newEmailLower;
     // Re-key the users object
@@ -1711,7 +1772,7 @@ window.requestChangeEmail = function () {
     authStore.currentUserId = newEmailLower;
     saveAuthStore();
 
-    alert("Email updated successfully!");
+    showAlert("Email updated successfully!");
     renderProfileScreen();
   }
 }
@@ -1719,22 +1780,22 @@ window.requestChangeEmail = function () {
 window.requestChangePassword = function () {
   const user = getCurrentUser();
   const oldPass = prompt("Enter your CURRENT password:");
-  if (!oldPass || oldPass !== user.password) { alert("Incorrect current password."); return; }
+  if (!oldPass || oldPass !== user.password) { showAlert("Incorrect current password."); return; }
 
   const newPass = prompt("Enter your NEW password (min 6 characters):");
-  if (!newPass || newPass.length < 6) { alert("Password must be at least 6 characters."); return; }
+  if (!newPass || newPass.length < 6) { showAlert("Password must be at least 6 characters."); return; }
 
-  alert(`An OTP has been sent to ${user.email} for verification (simulated).`);
+  showAlert(`An OTP has been sent to ${user.email} for verification (simulated).`);
   const otp = prompt("Please enter the 6-digit OTP:");
   if (otp) {
     user.password = newPass;
     saveAuthStore();
-    alert("Password updated successfully!");
+    showAlert("Password updated successfully!");
   }
 }
 
-window.handleLogout = function () {
-  if (!confirm('Sign out of Mindful Journal?')) return;
+window.handleLogout = async function () {
+  if (!(await showConfirm('Sign out of Mindful Journal?', 'Sign Out', true, 'Sign Out'))) return;
   authStore.currentUserId = null;
   saveAuthStore();
   store = { apiKey: ['AIzaSy', 'BKo7Mu', '22hqa5tI', '8lV2Y-eSp', 'q1pwrnWsGA'].join(''), entries: [] };
@@ -1781,9 +1842,9 @@ window.closeAvatarPicker = function () {
 window.handleAvatarFileUpload = function (event) {
   const file = event.target.files?.[0];
   if (!file) return;
-  if (!file.type.startsWith('image/')) { alert('Please select an image file.'); return; }
+  if (!file.type.startsWith('image/')) { showAlert('Please select an image file.'); return; }
   // Limit to ~2 MB to avoid localStorage bloat
-  if (file.size > 2 * 1024 * 1024) { alert('Image too large. Please pick one under 2 MB.'); return; }
+  if (file.size > 2 * 1024 * 1024) { showAlert('Image too large. Please pick one under 2 MB.'); return; }
   const reader = new FileReader();
   reader.onload = function (e) {
     const base64 = e.target.result;
@@ -1809,8 +1870,8 @@ window.applyAvatarColor = function (color) {
 
 // =================== PROFILE HELPERS ===================
 
-window.clearAllData = function () {
-  if (confirm("This will permanently delete all your journal entries. Proceed?")) {
+window.clearAllData = async function () {
+  if (await showConfirm("This will permanently delete all your journal entries. Proceed?", "Clear All Data", true, "Delete All")) {
     store.entries = [];
     saveStore();
     switchScreen('screen-home');
